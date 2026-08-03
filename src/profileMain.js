@@ -6,7 +6,9 @@ import './styles/main.css';
 import './styles/shell.css';
 import './styles/profile.css';
 import './styles/legal.css';
+import './styles/chat.css';
 import { getProfileMarkup } from './pages/profile.js';
+import { mountChatWidget } from './ui/chatWidget.js';
 import { bindProfilePage } from './ui/profilePage.js';
 import { bindSettingsMenu } from './ui/settingsMenu.js';
 import { bindThemeToggle } from './ui/themeToggle.js';
@@ -27,6 +29,7 @@ function initProfilePage() {
   bindThemeToggle();
   bindSettingsMenu();
   bindProfilePage();
+  mountChatWidget();
 }
 
 initProfilePage();

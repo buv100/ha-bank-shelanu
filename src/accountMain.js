@@ -5,7 +5,9 @@
 import './styles/main.css';
 import './styles/shell.css';
 import './styles/legal.css';
+import './styles/chat.css';
 import { getAccountMarkup, renderTransactions } from './pages/account.js';
+import { mountChatWidget } from './ui/chatWidget.js';
 import { bindSettingsMenu } from './ui/settingsMenu.js';
 import { bindThemeToggle } from './ui/themeToggle.js';
 import { initTheme } from './utils/theme.js';
@@ -25,6 +27,7 @@ function initAccountPage() {
   renderTransactions();
   bindThemeToggle();
   bindSettingsMenu();
+  mountChatWidget();
 }
 
 initAccountPage();

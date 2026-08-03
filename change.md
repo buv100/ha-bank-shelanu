@@ -189,3 +189,10 @@
 - **למה:** לאפשר קישור לשיתוף עם חברים
 - **בקוד:** `base` ב־CI; `pagePath` עם `import.meta.env.BASE_URL`
 - **באתר:** אחרי הפריסה — https://buv100.github.io/ha-bank-shelanu/
+
+### צ׳אט AI — UI + דמה + Worker מוכן
+- **מה השתנה:** כפתור צ׳אט מרחף, פאנל שניתן להרחבה, הסכמות, תשובות דמה, פעולות ניווט, שלד Cloudflare Worker ל־Gemini
+- **קבצים:** src/ui/chatWidget.js, src/styles/chat.css, src/data/chatMock.js, src/services/chatApi.js, src/services/chatActions.js, src/utils/chatPrefs.js, worker/*, .env.example, דפי Main מחוברים, privacy/terms, change.md
+- **למה:** עוזר בנקאי לדמו לפי האפיון (בלי ייעוץ, עם אישור לנתונים רגישים)
+- **בקוד:** `mountChatWidget`; נפילה לדמה בלי `VITE_CHAT_API_URL`
+- **באתר:** עיגול סגול־ציאן מעל התפריט; אחרי אישור — "הבנקאי של ישראל ישראלי"

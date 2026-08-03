@@ -8,7 +8,7 @@ export const mockAccount = {
   id: 'acc-1',
   type: 'checking',
   currency: 'ILS',
-  balance: 50578.75,
+  balance: 75000,
 };
 
 /**
