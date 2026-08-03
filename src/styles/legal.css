@@ -1,0 +1,227 @@
+/**
+ * עיצוב באנר דמו, פוטר משפטי ודפי הצהרות.
+ */
+
+/* קישור דילוג לתוכן — נראה רק בפוקוס במקלדת */
+.skip-link {
+  position: absolute;
+  inset-inline-start: 0.75rem;
+  top: -100px;
+  z-index: 100;
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--shadow-soft);
+}
+
+.skip-link:focus {
+  top: 0.75rem;
+  outline: 3px solid var(--color-accent-dark);
+  outline-offset: 2px;
+}
+
+/* באנר דמו */
+.demo-banner {
+  padding: 0.55rem clamp(0.85rem, 3vw, 1.25rem);
+  background: color-mix(in srgb, #b45309 14%, var(--color-surface));
+  border-bottom: 1px solid color-mix(in srgb, #b45309 30%, var(--color-border));
+  color: var(--color-text);
+}
+
+.demo-banner__text {
+  margin: 0;
+  max-width: 72rem;
+  margin-inline: auto;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.demo-banner__link {
+  color: var(--color-accent-dark);
+  font-weight: 700;
+}
+
+.demo-banner__link:hover {
+  text-decoration: underline;
+}
+
+/* פוטר */
+.site-footer {
+  padding: 1rem clamp(1rem, 4vw, 1.5rem) 1.25rem;
+  border-top: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+}
+
+.app-shell .site-footer {
+  /* מקום לתפריט התחתון הקבוע מתחת לפוטר */
+  padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+.site-footer__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.1rem;
+  justify-content: center;
+  margin-bottom: 0.45rem;
+}
+
+.site-footer__link {
+  color: var(--color-accent-dark);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.site-footer__link:hover {
+  text-decoration: underline;
+}
+
+.site-footer__note {
+  margin: 0;
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+/* מעטפת דפים משפטיים */
+.legal-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+}
+
+.legal-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem clamp(1rem, 4vw, 1.5rem);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.legal-topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.legal-topbar__bank {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.legal-topbar__title {
+  margin: 0.05rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.legal-back {
+  flex-shrink: 0;
+  color: var(--color-accent-dark);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.legal-back:hover {
+  text-decoration: underline;
+}
+
+.legal-main {
+  padding: 1.25rem clamp(1rem, 4vw, 1.5rem) 1.75rem;
+}
+
+.legal-doc {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.15rem 1.4rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+  animation: fade-rise 0.35s ease both;
+}
+
+.legal-doc__title {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+}
+
+.legal-doc__meta {
+  margin: 0 0 1rem;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.legal-doc h3 {
+  margin: 1.25rem 0 0.45rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.legal-doc p,
+.legal-doc li {
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.legal-doc ul {
+  margin: 0.35rem 0 0;
+  padding-inline-start: 1.2rem;
+}
+
+.legal-doc a {
+  color: var(--color-accent-dark);
+  font-weight: 600;
+}
+
+.legal-doc__callout {
+  margin: 0 0 1rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
+  border: 1px solid rgba(13, 148, 136, 0.28);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0.35rem 0 0.75rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.consent-row input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.consent-row a {
+  color: var(--color-accent-dark);
+  font-weight: 700;
+}
+
+.consent-error {
+  margin: 0 0 0.75rem;
+  color: #b45309;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.consent-error[hidden] {
+  display: none !important;
+}

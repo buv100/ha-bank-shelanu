@@ -1,0 +1,4 @@
+# עד לעלייה ציבורית — מומלץ לא לאנדקס.
+# לפני השקה: שנו ל-Allow: / והסירו meta robots=noindex מהדפים.
+User-agent: *
+Disallow: /

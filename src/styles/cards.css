@@ -1,0 +1,596 @@
+/**
+ * עיצוב דף הכרטיסים —
+ * כרטיס בולד וצעיר, מודלים, והיפוך יציב להצגת CVV.
+ */
+
+.cards-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.cards-page__item {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.cards-page__item[hidden] {
+  display: none !important;
+}
+
+.cards-page__visual {
+  display: flex;
+  justify-content: center;
+}
+
+/* בחירת כרטיס — מציגים אחד בכל פעם */
+.card-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.55rem;
+}
+
+.card-picker__option {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-align: right;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.card-picker__option:hover {
+  border-color: rgba(13, 148, 136, 0.4);
+  background: var(--color-accent-soft);
+}
+
+.card-picker__option.is-selected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-dark);
+  box-shadow: inset 0 0 0 1px rgba(13, 148, 136, 0.25);
+}
+
+.card-picker__name {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.card-picker__digits {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.card-picker__option.is-selected .card-picker__digits {
+  color: inherit;
+  opacity: 0.85;
+}
+
+/* כרטיס — בולד, צעיר, זוהר */
+.bank-card {
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  width: min(100%, 400px);
+  aspect-ratio: 1.586 / 1;
+  padding: 1.25rem 1.35rem;
+  border-radius: 22px;
+  color: #ffffff;
+  background:
+    linear-gradient(125deg, #00f5d4 0%, #00c2a8 28%, #0d9488 58%, #115e59 100%);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(0, 245, 212, 0.25),
+    0 18px 40px rgba(0, 194, 168, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 0.75rem;
+  animation: fade-rise 0.45s ease both;
+}
+
+.bank-card--bold .bank-card__brand {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+/* בלי filter:blur — שובר היפוך 3D במודל ההצגה */
+.bank-card__glow {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  right: -60px;
+  bottom: -70px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+}
+
+.bank-card__shine {
+  position: absolute;
+  inset: -50% auto auto -40%;
+  width: 75%;
+  height: 120%;
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.45), transparent 58%);
+  transform: rotate(20deg);
+  pointer-events: none;
+}
+
+.bank-card__stripe {
+  position: absolute;
+  top: 0;
+  left: 18%;
+  width: 42px;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.02));
+  transform: skewX(-18deg);
+  pointer-events: none;
+}
+
+.bank-card__top,
+.bank-card__mid,
+.bank-card__number,
+.bank-card__bottom,
+.bank-card__back-panel,
+.bank-card__back-note {
+  position: relative;
+  z-index: 1;
+}
+
+.bank-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.bank-card__brand {
+  display: block;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.03em;
+}
+
+.bank-card__product {
+  display: block;
+  margin: 0.2rem 0 0;
+  opacity: 0.9;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.bank-card__network {
+  margin: 0;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(15, 47, 44, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.bank-card__mid {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.bank-card__chip {
+  width: 52px;
+  height: 38px;
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, #fff4c2 0%, #f0d56a 42%, #d4a017 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.bank-card__contactless {
+  display: inline-flex;
+  opacity: 0.95;
+}
+
+.bank-card__number {
+  margin: 0;
+  align-self: end;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 4.4vw, 1.6rem);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.bank-card__bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.bank-card__meta-label {
+  display: block;
+  margin: 0;
+  opacity: 0.85;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bank-card__meta-value {
+  display: block;
+  margin: 0.25rem 0 0;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+/* גב הכרטיס */
+/* אשראי — גוון כהה יותר כדי להבדיל מחיוב */
+.bank-card--credit {
+  background:
+    linear-gradient(125deg, #1de0c2 0%, #0f766e 35%, #134e4a 70%, #042f2e 100%);
+}
+
+.bank-card--back {
+  background:
+    linear-gradient(155deg, #062925 0%, #0b4f4a 45%, #00c2a8 100%);
+  grid-template-rows: auto 1fr auto;
+  gap: 1rem;
+}
+
+.bank-card--credit.bank-card--back {
+  background:
+    linear-gradient(155deg, #021a18 0%, #0b3d38 45%, #0f766e 100%);
+}
+
+.bank-card__magstripe {
+  height: 48px;
+  margin: 0.1rem -1.35rem 0;
+  background: linear-gradient(180deg, #0a0a0a 0%, #333 45%, #0a0a0a 100%);
+}
+
+.bank-card__back-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 12px;
+  background: #fff;
+  color: #062925;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.bank-card__sig-line {
+  flex: 1;
+  height: 32px;
+  border-radius: 6px;
+  background:
+    repeating-linear-gradient(
+      -12deg,
+      transparent,
+      transparent 3px,
+      rgba(6, 41, 37, 0.14) 3px,
+      rgba(6, 41, 37, 0.14) 5px
+    );
+}
+
+.bank-card__cvv-box {
+  min-width: 72px;
+  text-align: center;
+}
+
+.bank-card__cvv-box .bank-card__meta-label {
+  color: #5b7571;
+  opacity: 1;
+}
+
+.bank-card__cvv-value {
+  display: block;
+  margin-top: 0.2rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  color: #062925;
+}
+
+.bank-card__back-note {
+  display: block;
+  margin: 0;
+  text-align: center;
+  opacity: 0.9;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* פאנל פרטים */
+.card-details {
+  padding: 1.15rem 1.1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+}
+
+.card-details__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.card-details__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+
+.card-status {
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.card-status--active {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-dark);
+}
+
+.card-details__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.card-details__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.card-details__label {
+  color: var(--color-muted);
+  font-size: 0.88rem;
+}
+
+.card-details__value {
+  font-weight: 600;
+  text-align: left;
+}
+
+.card-actions {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.card-actions__btn {
+  margin: 0;
+}
+
+.card-actions__btn--small {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.card-actions__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1.1rem;
+  font-weight: 600;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--color-accent-soft);
+  border-color: rgba(13, 148, 136, 0.35);
+  color: var(--color-accent-dark);
+}
+
+/* מודלים */
+.card-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.card-modal[hidden] {
+  display: none !important;
+}
+
+.card-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 20, 18, 0.62);
+  backdrop-filter: blur(4px);
+}
+
+.card-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 420px);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.28);
+  animation: fade-rise 0.3s ease both;
+}
+
+.card-modal__dialog--reveal {
+  width: min(100%, 480px);
+}
+
+.card-modal__title {
+  margin: 0 0 0.65rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+
+.card-modal__text {
+  margin: 0 0 0.75rem;
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.card-modal__disclaimer {
+  margin: 0 0 1.15rem;
+  padding: 0.85rem;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-dark);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.card-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
+.card-reveal__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+}
+
+.card-reveal__timer {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.card-reveal__hint {
+  margin: 0 0 0.85rem;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+/**
+ * היפוך כרטיס — מבנה פשוט ויציב.
+ * direction:ltr מבודד מ־RTL כדי שה־3D לא יישבר.
+ */
+.card-flip {
+  display: block;
+  width: 100%;
+  margin: 0 0 1rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  perspective: 1200px;
+  direction: ltr;
+}
+
+.card-flip__inner {
+  position: relative;
+  width: 100%;
+  min-height: 230px;
+  aspect-ratio: 1.586 / 1;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+}
+
+.card-flip.is-flipped .card-flip__inner {
+  transform: rotateY(180deg);
+}
+
+.card-flip__face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.card-flip__face--front {
+  transform: rotateY(0deg);
+}
+
+.card-flip__face--back {
+  transform: rotateY(180deg);
+}
+
+.card-flip .bank-card {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  aspect-ratio: auto;
+  margin: 0;
+  animation: none;
+}
+
+.card-reveal__close {
+  width: 100%;
+}
+
+@media (max-width: 420px) {
+  .bank-card {
+    padding: 1rem 1.05rem;
+  }
+
+  .bank-card__number {
+    letter-spacing: 0.1em;
+  }
+
+  .card-reveal__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .card-flip__inner {
+    min-height: 200px;
+  }
+}

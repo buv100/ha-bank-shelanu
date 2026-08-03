@@ -1,0 +1,368 @@
+/**
+ * עיצוב גלובלי — הבנק שלנו.
+ * לבן + טורקיז, RTL, רספונסיבי, עם כמה אנימציות עדינות.
+ */
+
+/* === משתני עיצוב מרכזיים === */
+:root {
+  --color-bg: #f3faf9;
+  --color-surface: #ffffff;
+  --color-text: #0f2f2c;
+  --color-muted: #5b7571;
+  --color-accent: #0d9488;
+  --color-accent-dark: #0f766e;
+  --color-accent-soft: #ccfbf1;
+  --color-income: #0f766e;
+  --color-expense: #b45309;
+  --color-border: #d7ebe7;
+  --shadow-soft: 0 18px 40px rgba(15, 47, 44, 0.08);
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --font-body: "Heebo", "Segoe UI", sans-serif;
+  --font-display: "Rubik", "Heebo", sans-serif;
+  --space: 1rem;
+  --bg-glow-a: rgba(13, 148, 136, 0.16);
+  --bg-glow-b: rgba(15, 118, 110, 0.1);
+  --bg-base-top: #f8fffd;
+  --bg-base-bottom: #eef8f6;
+}
+
+/* ערכת נושא כהה — אותם משתנים, ערכים אחרים */
+html[data-theme="dark"] {
+  --color-bg: #0f1c1a;
+  --color-surface: #17302c;
+  --color-text: #e8f7f4;
+  --color-muted: #9bb5b0;
+  --color-accent: #2dd4bf;
+  --color-accent-dark: #5eead4;
+  --color-accent-soft: rgba(45, 212, 191, 0.16);
+  --color-income: #5eead4;
+  --color-expense: #fbbf24;
+  --color-border: #2a4a44;
+  --shadow-soft: 0 18px 40px rgba(0, 0, 0, 0.35);
+  --bg-glow-a: rgba(45, 212, 191, 0.12);
+  --bg-glow-b: rgba(13, 148, 136, 0.08);
+  --bg-base-top: #10221f;
+  --bg-base-bottom: #0c1816;
+  color-scheme: dark;
+}
+
+/* איפוס בסיסי */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  /* רקע עם עומק עדין — משתמש במשתנים כדי שמצב כהה יעבוד */
+  background:
+    radial-gradient(circle at 12% 10%, var(--bg-glow-a), transparent 42%),
+    radial-gradient(circle at 88% 0%, var(--bg-glow-b), transparent 36%),
+    linear-gradient(165deg, var(--bg-base-top) 0%, var(--color-bg) 45%, var(--bg-base-bottom) 100%);
+  line-height: 1.5;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+/* פוקוס ברור למקלדת — נגישות */
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+input:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* מסכים — מעבר עדין בכניסה */
+.screen {
+  min-height: 100vh;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+.screen.is-active {
+  animation: fade-rise 0.45s ease both;
+}
+
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* מיתוג */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.brand--login {
+  margin-bottom: 1.75rem;
+}
+
+.brand--compact {
+  gap: 0.6rem;
+}
+
+.brand-logo {
+  display: inline-flex;
+  flex-shrink: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(13, 148, 136, 0.25);
+}
+
+.brand-logo svg {
+  display: block;
+}
+
+.brand-logo--sm {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+}
+
+.brand-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+
+.brand-tagline {
+  margin: 0.15rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+/* === דף התחברות === */
+.screen-login {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  align-content: stretch;
+  min-height: calc(100vh - 3rem);
+  padding-bottom: 0;
+}
+
+.screen-login .login-card {
+  margin: auto;
+}
+
+.screen-login .site-footer {
+  width: 100%;
+  margin-top: 1.5rem;
+}
+
+.login-card {
+  width: min(100%, 420px);
+  padding: clamp(1.5rem, 4vw, 2.25rem);
+  background: var(--color-surface);
+  border: 1px solid rgba(215, 235, 231, 0.9);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.login-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 4vw, 1.85rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.login-subtitle {
+  margin: 0.4rem 0 1.5rem;
+  color: var(--color-muted);
+  font-size: 0.95rem;
+}
+
+.login-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.field-label {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+
+.field-input {
+  width: 100%;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.18);
+}
+
+.btn {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1.1rem;
+  font-weight: 600;
+  transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary {
+  margin-top: 0.35rem;
+  background: var(--color-accent);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(13, 148, 136, 0.28);
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-dark);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* === דף עו״ש (תוכן בתוך המעטפת) === */
+.account-content {
+  display: grid;
+  gap: 1.25rem;
+  align-content: start;
+}
+
+.balance-panel {
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(135deg, rgba(13, 148, 136, 0.12), color-mix(in srgb, var(--color-surface) 90%, transparent) 55%),
+    var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+}
+
+.balance-caption {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.92rem;
+}
+
+.balance-value {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--color-accent-dark);
+}
+
+.tx-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1rem 0.4rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.tx-heading {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.tx-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tx-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 0.15rem;
+  border-top: 1px solid var(--color-border);
+  /* הופעה מדורגת קלה של שורות הרשימה */
+  animation: fade-rise 0.4s ease both;
+}
+
+.tx-item:nth-child(1) { animation-delay: 0.02s; }
+.tx-item:nth-child(2) { animation-delay: 0.05s; }
+.tx-item:nth-child(3) { animation-delay: 0.08s; }
+.tx-item:nth-child(4) { animation-delay: 0.11s; }
+.tx-item:nth-child(5) { animation-delay: 0.14s; }
+.tx-item:nth-child(6) { animation-delay: 0.17s; }
+.tx-item:nth-child(7) { animation-delay: 0.2s; }
+.tx-item:nth-child(8) { animation-delay: 0.23s; }
+.tx-item:nth-child(9) { animation-delay: 0.26s; }
+.tx-item:nth-child(10) { animation-delay: 0.29s; }
+
+.tx-main {
+  min-width: 0;
+}
+
+.tx-description {
+  margin: 0;
+  font-weight: 600;
+}
+
+.tx-meta {
+  margin: 0.2rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+}
+
+.tx-amount {
+  margin: 0;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.tx-amount--income {
+  color: var(--color-income);
+}
+
+.tx-amount--expense {
+  color: var(--color-expense);
+}
+
+/* מובייל — ריווח ומבנה נוחים יותר */
+@media (max-width: 520px) {
+  .tx-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+}

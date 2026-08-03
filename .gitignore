@@ -1,0 +1,14 @@
+# תלויות מותקנות — לא נכנסות לגיט
+node_modules/
+
+# תוצאת בנייה של Vite
+dist/
+
+# קבצי מערכת / עורך
+.DS_Store
+Thumbs.db
+*.log
+.vite/
+.cursor/
+.env
+.env.*

@@ -1,0 +1,465 @@
+/**
+ * עיצוב מעטפת האפליקציה —
+ * כותרת פשוטה כמו בהתחלה + כרטיס הלוואה צף קבוע משמאל.
+ */
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  /* באנר / כותרת / תוכן / פוטר / תפריט תחתון */
+  grid-template-rows: auto auto 1fr auto auto;
+}
+
+/* כותרת עליונה — לוגו מימין, הגדרות משמאל */
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem clamp(1rem, 4vw, 1.5rem);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  border-bottom: 1px solid var(--color-border);
+  backdrop-filter: blur(10px);
+}
+
+.app-topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.app-topbar__text {
+  min-width: 0;
+}
+
+.app-topbar__bank {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.app-topbar__title {
+  margin: 0.05rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* קבוצת כפתורים בצד שמאל של הכותרת */
+.app-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* כפתור מצב כהה / בהיר */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--color-accent-soft);
+  border-color: rgba(13, 148, 136, 0.35);
+  color: var(--color-accent-dark);
+}
+
+.theme-toggle__icon {
+  display: none;
+  line-height: 0;
+}
+
+/* במצב בהיר מציגים ירח (מעבר לכהה); במצב כהה מציגים שמש */
+.theme-toggle__icon--moon {
+  display: inline-flex;
+}
+
+.theme-toggle--dark .theme-toggle__icon--moon {
+  display: none;
+}
+
+.theme-toggle--dark .theme-toggle__icon--sun {
+  display: inline-flex;
+}
+
+/* כפתור הגדרות + מיני־תפריט (בצד שמאל של הכותרת ב־RTL) */
+.settings {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.settings__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.settings__toggle:hover,
+.settings__toggle[aria-expanded="true"] {
+  background: var(--color-accent-soft);
+  border-color: rgba(13, 148, 136, 0.35);
+  color: var(--color-accent-dark);
+}
+
+.settings__icon {
+  display: inline-flex;
+  line-height: 0;
+}
+
+.settings__menu {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  z-index: 50;
+  width: min(260px, calc(100vw - 2rem));
+  padding: 0.65rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--color-surface) 98%, transparent);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 16px 36px rgba(15, 47, 44, 0.12);
+}
+
+.settings__heading {
+  margin: 0 0 0.45rem;
+  padding: 0 0.35rem;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.settings__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.55rem;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-align: right;
+  cursor: pointer;
+}
+
+.settings__item:hover {
+  background: rgba(13, 148, 136, 0.08);
+}
+
+.settings__item--danger {
+  color: var(--color-accent-dark);
+  font-weight: 700;
+  justify-content: center;
+}
+
+.settings__divider {
+  margin: 0.35rem 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
+}
+
+/* מתג קטן ליד ההגדרה */
+.settings__switch {
+  width: 34px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #d7ebe7;
+  position: relative;
+  transition: background-color 0.15s ease;
+}
+
+.settings__switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 47, 44, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.settings__switch--on {
+  background: var(--color-accent);
+}
+
+.settings__switch--on::after {
+  transform: translateX(-14px);
+}
+
+.balance-value--hidden {
+  letter-spacing: 0.15em;
+}
+
+@media (max-width: 420px) {
+  .settings__label,
+  .theme-toggle__label {
+    display: none;
+  }
+}
+
+/**
+ * שורת יתרה + כרטיס הלוואה —
+ * ב־RTL היתרה מימין והכרטיס משמאל; גוללים יחד עם הדף.
+ */
+.account-hero {
+  display: flex;
+  align-items: stretch;
+  gap: 0.85rem;
+}
+
+.account-hero .balance-panel {
+  flex: 1;
+  min-width: 0;
+}
+
+/**
+ * כרטיס הלוואה ליד היתרה —
+ * במצב רגיל באותו סגנון צבע כמו פאנל היתרה;
+ * ב־hover בולט יותר.
+ */
+.loan-float {
+  position: relative;
+  flex: 0 0 132px;
+  width: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.85rem 0.75rem;
+  border-radius: var(--radius-lg);
+  /* כמו .balance-panel */
+  background:
+    linear-gradient(135deg, rgba(13, 148, 136, 0.12), color-mix(in srgb, var(--color-surface) 90%, transparent) 55%),
+    var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+  color: var(--color-text);
+  text-align: center;
+  animation: loan-float-bob 3.2s ease-in-out infinite;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.loan-float:hover {
+  animation: none;
+  background:
+    linear-gradient(135deg, rgba(13, 148, 136, 0.28), color-mix(in srgb, var(--color-surface) 98%, transparent) 45%),
+    var(--color-surface);
+  border-color: rgba(13, 148, 136, 0.45);
+  box-shadow: 0 16px 36px rgba(13, 148, 136, 0.22);
+  transform: translateY(-2px);
+}
+
+@keyframes loan-float-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.loan-float__eyebrow {
+  margin: 0;
+  color: var(--color-accent-dark);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.loan-float__headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+  color: var(--color-accent-dark);
+}
+
+.loan-float__list {
+  margin: 0.1rem 0 0.25rem;
+  padding: 0;
+  list-style: none;
+  color: var(--color-muted);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.loan-float__list li + li {
+  margin-top: 0.12rem;
+}
+
+.loan-float__btn {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  text-decoration: none;
+  padding: 0.4rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(13, 148, 136, 0.85);
+  color: #fff;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.loan-float:hover .loan-float__btn {
+  background: var(--color-accent-dark);
+  box-shadow: 0 6px 14px rgba(13, 148, 136, 0.35);
+}
+
+.loan-float__btn:hover {
+  background: var(--color-accent-dark);
+  transform: translateY(-1px);
+}
+
+/* הסתרה אמיתית — דורסת את display:flex של הכרטיס */
+.loan-float--hidden {
+  display: none !important;
+}
+
+@media (max-width: 520px) {
+  .account-hero {
+    flex-direction: column;
+  }
+
+  .loan-float {
+    flex: none;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    text-align: right;
+    animation: none;
+  }
+
+  .loan-float__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.75rem;
+    margin: 0;
+  }
+
+  .loan-float__list li + li {
+    margin-top: 0;
+  }
+
+  .loan-float__btn {
+    width: auto;
+    padding-inline: 0.85rem;
+  }
+}
+
+.app-main {
+  width: min(100%, 720px);
+  margin-inline: auto;
+  padding: 1.25rem clamp(1rem, 4vw, 1.5rem) 1rem;
+}
+
+.app-nav {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+  padding: 0.55rem 0.75rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -10px 30px rgba(15, 47, 44, 0.06);
+  backdrop-filter: blur(10px);
+}
+
+.app-nav__item {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  padding: 0.45rem 0.35rem;
+  border-radius: 12px;
+  color: var(--color-muted);
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 500;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.app-nav__item:hover {
+  color: var(--color-accent-dark);
+  background: rgba(13, 148, 136, 0.06);
+}
+
+.app-nav__item--active {
+  color: var(--color-accent-dark);
+  background: var(--color-accent-soft);
+  font-weight: 700;
+}
+
+.app-nav__icon {
+  display: inline-flex;
+  line-height: 0;
+}
+
+/* דף זמני בתוך המעטפת — עד שנמלא תוכן אמיתי בשלב הבא */
+.shell-placeholder {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+}
+
+.shell-placeholder h2 {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.shell-placeholder p {
+  margin: 0;
+  color: var(--color-muted);
+}
