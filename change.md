@@ -182,3 +182,10 @@
 - **למה:** להכין את האתר לעלייה לאינטרנט בעתיד בלי לפרסם עדיין
 - **בקוד:** מעטפת משפטית משותפת; `meta robots=noindex`; הסכמה בטפסים
 - **באתר:** באנר "דמו בלבד" בכל המסכים; קישורים בפוטר; דפים חדשים לנגישות/פרטיות/תנאים
+
+### חיבור ל־GitHub + Pages
+- **מה השתנה:** ריפו ציבורי ב־GitHub; נתיבים מותאמים ל־BASE_URL; workflow לפריסת GitHub Pages
+- **קבצים:** .github/workflows/deploy-pages.yml, src/ui/navigation.js, vite.config.js, change.md
+- **למה:** לאפשר קישור לשיתוף עם חברים
+- **בקוד:** `base` ב־CI; `pagePath` עם `import.meta.env.BASE_URL`
+- **באתר:** אחרי הפריסה — https://buv100.github.io/ha-bank-shelanu/

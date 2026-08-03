@@ -12,6 +12,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   // תיקיית השורש של האתר (איפה נמצא index.html)
   root: '.',
+  // ב־GitHub Actions מפרסמים תחת /ha-bank-shelanu/ ; מקומית נשאר /
+  base: process.env.GITHUB_ACTIONS ? '/ha-bank-shelanu/' : '/',
   server: {
     // מאזינים על IPv4 כדי ש־http://127.0.0.1:5173 יעבוד בוודאות ב־Windows
     host: '127.0.0.1',
