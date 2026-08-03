@@ -349,13 +349,13 @@ export function bindChatWidget() {
     document.getElementById('chat-sensitive-bar').hidden = true;
     appendMessage(
       'assistant',
-      'תודה. בשיחה זו אושרו פרטים רגישים. אפשר לשאול שוב על יתרה או פרטי כרטיס.',
+      'אושר. אפשר לשאול שוב על יתרה או כרטיס.',
     );
   });
 
   sensitiveNo?.addEventListener('click', () => {
     document.getElementById('chat-sensitive-bar').hidden = true;
-    appendMessage('assistant', 'בסדר. אפשר להמשיך בלי פרטים רגישים.');
+    appendMessage('assistant', 'בסדר, ממשיכים בלי פרטים רגישים.');
   });
 
   form.addEventListener('submit', (event) => {

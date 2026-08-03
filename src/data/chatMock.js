@@ -5,7 +5,6 @@
 
 import { mockAccount } from './mockAccount.js';
 import { mockCards } from './mockCards.js';
-import { mockProfile } from './mockProfile.js';
 import { formatCurrency } from '../utils/format.js';
 
 /**
@@ -47,34 +46,30 @@ export function detectChatIntent(text) {
 export function getMockChatReply(userText, options) {
   const intent = detectChatIntent(userText);
   const allowSensitive = Boolean(options.allowSensitive);
-  const firstName = mockProfile.fullName.split(' ')[0];
 
   if (intent === 'help') {
     return {
-      reply:
-        `אני ${`הבנקאי של ${mockProfile.fullName}`} — עוזר דמו.\n` +
-        'אפשר לשאול על יתרה (אחרי אישור), כרטיסים, מעבר לעו״ש/פרופיל/הלוואה.\n' +
-        'אני לא נותן ייעוץ פיננסי — רק מידע ופעולות בדמו.',
+      reply: 'אפשר לשאול על יתרה (עם אישור), כרטיסים, או מעבר לדף. בלי ייעוץ פיננסי.',
     };
   }
 
   if (intent === 'navigate_loan') {
     return {
-      reply: 'מעביר אותך לדף בקשת ההלוואה (דמו).',
+      reply: 'מעביר להלוואה.',
       action: 'navigate_loan',
     };
   }
 
   if (intent === 'navigate_profile') {
     return {
-      reply: 'פותח את דף הפרופיל.',
+      reply: 'פותח פרופיל.',
       action: 'navigate_profile',
     };
   }
 
   if (intent === 'navigate_account') {
     return {
-      reply: 'חוזרים לדף העו״ש.',
+      reply: 'עוברים לעו״ש.',
       action: 'navigate_account',
     };
   }
@@ -82,14 +77,13 @@ export function getMockChatReply(userText, options) {
   if (intent === 'balance') {
     if (!allowSensitive) {
       return {
-        reply:
-          'כדי להציג יתרה או פרטים כספיים צריך אישור שלך. לחץ/י "מאשר/ת הצגת פרטים רגישים" למטה.',
+        reply: 'צריך אישור להצגת יתרה — לחץ/י "מאשר/ת" למטה.',
         needsSensitiveConsent: true,
       };
     }
 
     return {
-      reply: `${firstName}, היתרה הזמינה בדמו היא ${formatCurrency(mockAccount.balance)}.`,
+      reply: `יתרה בדמו: ${formatCurrency(mockAccount.balance)}.`,
     };
   }
 
@@ -98,34 +92,29 @@ export function getMockChatReply(userText, options) {
 
     if (/מלא|full|cvv|מספר\s*מלא/.test(userText.toLowerCase()) && !allowSensitive) {
       return {
-        reply: 'פרטי כרטיס מלאים הם רגישים. אשר/י הצגת פרטים רגישים ואז שאל/י שוב.',
+        reply: 'פרטים מלאים דורשים אישור — לחץ/י "מאשר/ת" למטה.',
         needsSensitiveConsent: true,
       };
     }
 
     if (!allowSensitive) {
-      const masked = mockCards.map((c) => `${c.productName}: ${c.numberMasked}`).join('\n');
+      const masked = mockCards.map((c) => `${c.productName}: ${c.numberMasked}`).join(' · ');
       return {
-        reply:
-          `הכרטיסים בדמו (ממוסך):\n${masked}\n\n` +
-          'לפרטים מלאים — אשר/י פרטים רגישים. למעבר לדף: "עבור לכרטיסים".',
+        reply: `כרטיסים (ממוסך): ${masked}`,
         action: wantsNavigate ? 'navigate_cards' : undefined,
       };
     }
 
     const full = mockCards
-      .map((c) => `${c.productName}: ${c.fullNumber} · תוקף ${c.expiry} · CVV ${c.cvv}`)
-      .join('\n');
+      .map((c) => `${c.productName}: ${c.fullNumber}, ${c.expiry}, CVV ${c.cvv}`)
+      .join(' · ');
     return {
-      reply: `פרטי כרטיסים (דמו, אחרי אישור):\n${full}`,
+      reply: full,
       action: wantsNavigate ? 'navigate_cards' : undefined,
     };
   }
 
   return {
-    reply:
-      'אני כאן לעזור בדמו: יתרה (עם אישור), כרטיסים, מעבר בין דפים והלוואה.\n' +
-      'לא אוכל לתת ייעוץ או לשוחח בצ׳אט חופשי מחוץ לנושאי הבנק בדמו.\n' +
-      'נסי/י למשל: "מה היתרה?", "כרטיסים", "עבור להלוואה".',
+    reply: 'שאלו בקצרה: יתרה, כרטיסים, או "עבור להלוואה".',
   };
 }

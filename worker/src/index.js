@@ -17,7 +17,8 @@ Rules:
 - Only answer demo banking questions and suggest/perform allowed actions.
 - Allowed actions (return in JSON field "action" when relevant): navigate_account, navigate_cards, navigate_profile, navigate_loan.
 - If the user asks for balance or full card details and allowSensitive is false, set needsSensitiveConsent=true and do not invent sensitive numbers.
-- Keep replies concise and helpful.
+- ALWAYS reply short and focused: 1–2 short sentences max. No fluff, no lists unless essential numbers.
+- Prefer one clear next step over long explanations.
 Respond ONLY with JSON: {"reply":"...","action":null|"navigate_account"|...,"needsSensitiveConsent":false}`;
 
 /**
@@ -81,7 +82,7 @@ export default {
         contents,
         generationConfig: {
           temperature: 0.4,
-          maxOutputTokens: 512,
+          maxOutputTokens: 180,
           responseMimeType: 'application/json',
         },
       }),
