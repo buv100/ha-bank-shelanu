@@ -8,8 +8,8 @@ import './styles/cards.css';
 import './styles/legal.css';
 import './styles/chat.css';
 import { getCardsMarkup } from './pages/cards.js';
-import { bindCardPicker } from './ui/cardPicker.js';
-import { bindCardReveal } from './ui/cardReveal.js';
+import { bindCardPicker, selectCard } from './ui/cardPicker.js';
+import { bindCardReveal, consumeRevealQueryParam } from './ui/cardReveal.js';
 import { mountChatWidget } from './ui/chatWidget.js';
 import { bindSettingsMenu } from './ui/settingsMenu.js';
 import { bindThemeToggle } from './ui/themeToggle.js';
@@ -32,6 +32,15 @@ function initCardsPage() {
   bindCardPicker();
   bindCardReveal();
   mountChatWidget();
+
+  const params = new URLSearchParams(window.location.search);
+  const revealId = params.get('reveal');
+
+  if (revealId) {
+    selectCard(revealId);
+  }
+
+  consumeRevealQueryParam();
 }
 
 initCardsPage();

@@ -7,7 +7,7 @@
  * מחליף את הכרטיס המוצג לפי מזהה.
  * @param {string} cardId
  */
-function selectCard(cardId) {
+export function selectCard(cardId) {
   const panels = document.querySelectorAll('[data-card-panel]');
   const options = document.querySelectorAll('[data-select-card]');
 

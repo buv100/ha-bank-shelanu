@@ -275,6 +275,39 @@ function toggleCardFlip() {
 }
 
 /**
+ * פותח הצגת פרטי כרטיס מהצ׳אט (אחרי אישור רגיש בשיחה).
+ * @param {string | null | undefined} cardId
+ * @returns {boolean}
+ */
+export function openCardRevealForChat(cardId) {
+  selectedCardId = cardId || mockCards[0]?.id || null;
+
+  if (!selectedCardId || !document.getElementById('card-reveal-modal')) {
+    return false;
+  }
+
+  openRevealModal();
+  return true;
+}
+
+/**
+ * אם הגיעו עם ?reveal=card-id — פותחים את מודל הפרטים אחרי טעינה.
+ */
+export function consumeRevealQueryParam() {
+  const params = new URLSearchParams(window.location.search);
+  const revealId = params.get('reveal');
+
+  if (!revealId) {
+    return;
+  }
+
+  window.history.replaceState({}, '', window.location.pathname);
+  window.setTimeout(() => {
+    openCardRevealForChat(revealId);
+  }, 200);
+}
+
+/**
  * מחבר את כפתורי ההצגה, האישור, הביטול, ההיפוך והסגירה.
  */
 export function bindCardReveal() {

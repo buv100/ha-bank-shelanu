@@ -295,7 +295,7 @@ async function handleSend(text) {
   }
 
   if (result.action && !result.needsSensitiveConsent) {
-    runChatAction(result.action);
+    runChatAction(result.action, { message: trimmed });
   }
 
   if (sendBtn) {

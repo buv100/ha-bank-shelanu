@@ -10,11 +10,41 @@ import { formatCurrency } from '../utils/format.js';
 /**
  * מזהה כוונה בסיסית מטקסט המשתמש.
  * @param {string} text
- * @returns {'navigate_account' | 'navigate_cards' | 'navigate_profile' | 'navigate_loan' | 'balance' | 'cards' | 'help' | 'general'}
+ * @returns {string}
  */
 export function detectChatIntent(text) {
   const t = text.toLowerCase();
 
+  if (/הסתר.*יתר|הסתרת\s*יתר|hide\s*balance/.test(t)) {
+    return 'hide_balance';
+  }
+  if (/הצג.*יתר|בטל.*הסתר.*יתר|הראה\s*יתר|show\s*balance/.test(t)) {
+    return 'show_balance';
+  }
+  if (/הסתר.*הלווא|הסתרת\s*פרסומת|hide\s*loan/.test(t)) {
+    return 'hide_loan';
+  }
+  if (/הצג.*הלווא|הראה.*הלווא|בטל.*הסתר.*הלווא|show\s*loan/.test(t)) {
+    return 'show_loan';
+  }
+  if (/כבה.*התרא|בטל.*התרא|notifications?\s*off/.test(t)) {
+    return 'notifications_off';
+  }
+  if (/הפעל.*התרא|תדליק.*התרא|notifications?\s*on/.test(t)) {
+    return 'notifications_on';
+  }
+  if (/מצב\s*כהה|dark\s*mode|theme\s*dark/.test(t)) {
+    return 'theme_dark';
+  }
+  if (/מצב\s*בהיר|light\s*mode|theme\s*light/.test(t)) {
+    return 'theme_light';
+  }
+  if (/פתח.*הגדר|הצג.*הגדר|open\s*settings|settings/.test(t)) {
+    return 'open_settings';
+  }
+  if (/הצג.*פרטי.*כרטיס|פרטים\s*מלאים|reveal|הראה\s*cvv|מספר\s*מלא/.test(t)) {
+    return 'reveal_card';
+  }
   if (/הלווא|loan/.test(t)) {
     return 'navigate_loan';
   }
@@ -49,7 +79,58 @@ export function getMockChatReply(userText, options) {
 
   if (intent === 'help') {
     return {
-      reply: 'אפשר לשאול על יתרה (עם אישור), כרטיסים, או מעבר לדף. בלי ייעוץ פיננסי.',
+      reply:
+        'אפשר: יתרה, הצגת כרטיס, הסתרת יתרה/הלוואה, התראות, מצב כהה, מעבר לדף.',
+    };
+  }
+
+  if (intent === 'hide_balance') {
+    return { reply: 'מסתיר יתרה.', action: 'hide_balance' };
+  }
+
+  if (intent === 'show_balance') {
+    return { reply: 'מציג יתרה.', action: 'show_balance' };
+  }
+
+  if (intent === 'hide_loan') {
+    return { reply: 'מסתיר פרסומת הלוואה.', action: 'hide_loan' };
+  }
+
+  if (intent === 'show_loan') {
+    return { reply: 'מציג פרסומת הלוואה.', action: 'show_loan' };
+  }
+
+  if (intent === 'notifications_on') {
+    return { reply: 'התראות הופעלו (דמו).', action: 'notifications_on' };
+  }
+
+  if (intent === 'notifications_off') {
+    return { reply: 'התראות כובו (דמו).', action: 'notifications_off' };
+  }
+
+  if (intent === 'theme_dark') {
+    return { reply: 'עובר למצב כהה.', action: 'theme_dark' };
+  }
+
+  if (intent === 'theme_light') {
+    return { reply: 'עובר למצב בהיר.', action: 'theme_light' };
+  }
+
+  if (intent === 'open_settings') {
+    return { reply: 'פותח הגדרות.', action: 'open_settings' };
+  }
+
+  if (intent === 'reveal_card') {
+    if (!allowSensitive) {
+      return {
+        reply: 'הצגת פרטי כרטיס מלאים דורשת אישור — לחץ/י "מאשר/ת" למטה.',
+        needsSensitiveConsent: true,
+      };
+    }
+
+    return {
+      reply: 'פותח פרטי כרטיס מלאים.',
+      action: 'reveal_card',
     };
   }
 
@@ -89,11 +170,19 @@ export function getMockChatReply(userText, options) {
 
   if (intent === 'cards') {
     const wantsNavigate = /עבור|פתח|לדף|go\s*to|open/.test(userText.toLowerCase());
+    const wantsReveal = /הצג|פרטים|מלא|cvv|reveal/.test(userText.toLowerCase());
 
-    if (/מלא|full|cvv|מספר\s*מלא/.test(userText.toLowerCase()) && !allowSensitive) {
+    if (wantsReveal) {
+      if (!allowSensitive) {
+        return {
+          reply: 'פרטים מלאים דורשים אישור — לחץ/י "מאשר/ת" למטה.',
+          needsSensitiveConsent: true,
+        };
+      }
+
       return {
-        reply: 'פרטים מלאים דורשים אישור — לחץ/י "מאשר/ת" למטה.',
-        needsSensitiveConsent: true,
+        reply: 'פותח פרטי כרטיס.',
+        action: 'reveal_card',
       };
     }
 
@@ -115,6 +204,6 @@ export function getMockChatReply(userText, options) {
   }
 
   return {
-    reply: 'שאלו בקצרה: יתרה, כרטיסים, או "עבור להלוואה".',
+    reply: 'נסו: "הצג פרטי כרטיס", "הסתר יתרה", "מצב כהה", "עבור להלוואה".',
   };
 }

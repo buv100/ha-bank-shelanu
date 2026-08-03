@@ -203,3 +203,10 @@
 - **למה:** שהבוט יהיה חד וממוקד בלי טקסט מיותר
 - **בקוד:** כלל מפורש ב־SYSTEM_PROMPT + `maxOutputTokens: 180` + קיצור תשובות דמה
 - **באתר:** בצ׳אט — תשובות קצרות יותר
+
+### הרחבת פעולות הצ׳אט — כרטיס והגדרות
+- **מה השתנה:** הצ׳אט יכול להציג פרטי כרטיס מלאים, לשנות העדפות (יתרה/הלוואה/התראות), מצב כהה/בהיר ולפתוח הגדרות
+- **קבצים:** src/data/chatMock.js, src/services/chatActions.js, src/ui/cardReveal.js, src/ui/cardPicker.js, src/cardsMain.js, src/ui/chatWidget.js, worker/src/index.js, change.md
+- **למה:** להרחיב את יכולות העוזר מעבר לניווט בלבד
+- **בקוד:** פעולות `reveal_card`, `hide_balance`, `theme_dark` וכו׳; `?reveal=` בדף כרטיסים
+- **באתר:** בצ׳אט — למשל "הצג פרטי כרטיס", "הסתר יתרה", "מצב כהה"
