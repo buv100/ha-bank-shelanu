@@ -3,18 +3,21 @@
  * לא מופיע בתפריט התחתון; נפתח רק מכפתור "לפרטים" בפרסומת.
  */
 
-import { mockAccount } from '../data/mockAccount.js';
 import { wrapInAppShell } from '../ui/appShell.js';
 import { ACCOUNT_PAGE, PRIVACY_PAGE } from '../ui/navigation.js';
 import { formatCurrency } from '../utils/format.js';
 import { getMaxLoanAmount } from '../utils/loan.js';
+import { getCurrentAccount, getCurrentProfile } from '../utils/session.js';
 
 /**
  * בונה את תוכן טופס ההלוואה.
  * @returns {string}
  */
 function getLoanFormMarkup() {
-  const maxLoanText = formatCurrency(getMaxLoanAmount(mockAccount.balance));
+  const account = getCurrentAccount();
+  const profile = getCurrentProfile();
+  const maxLoanText = formatCurrency(getMaxLoanAmount(account?.balance || 0));
+  const namePlaceholder = profile?.fullName || 'ישראל ישראלי';
 
   return `
     <section class="loan-page" aria-label="בקשת הלוואה">
@@ -30,7 +33,7 @@ function getLoanFormMarkup() {
         <form id="loan-form" class="loan-form" novalidate>
           <label class="field">
             <span class="field-label">שם מלא</span>
-            <input class="field-input" type="text" name="fullName" autocomplete="name" placeholder="ישראל ישראלי" />
+            <input class="field-input" type="text" name="fullName" autocomplete="name" placeholder="${namePlaceholder}" />
           </label>
 
           <label class="field">

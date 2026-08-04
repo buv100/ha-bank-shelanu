@@ -1,22 +1,9 @@
 /**
- * נתוני דמה לפרופיל המשתמש.
- * כאן משנים פרטים בלי לגעת בעיצוב או בדף.
+ * ייצוא תאימות לאחור — מקור האמת ב־mockUsers (משתמש 1).
+ * האפליקציה משתמשת ב־getCurrentProfile.
  */
 
-/** פרופיל המשתמש בדמו */
-export const mockProfile = {
-  id: 'user-1',
-  fullName: 'ישראל ישראלי',
-  /** ראשי תיבות לאווטאר */
-  initials: 'יי',
-  email: 'israel@example.com',
-  phone: '050-1234567',
-  /** תעודת זהות ממוסכת לתצוגה */
-  idNumberMasked: '••••••789',
-  address: 'רחוב הדמו 12, תל אביב',
-  customerNumber: '2048193',
-  branchName: 'סניף מרכז',
-  branchCode: '612',
-  accountStatus: 'active',
-  accountStatusLabel: 'פעיל',
-};
+import { mockUsers } from './mockUsers.js';
+
+/** פרופיל משתמש הדמו הראשון */
+export const mockProfile = mockUsers[0].profile;

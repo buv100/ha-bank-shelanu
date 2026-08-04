@@ -2,8 +2,8 @@
  * דף פרופיל — פרטי משתמש, סיכום חשבון, העדפות ויציאה (דמו).
  */
 
-import { mockProfile } from '../data/mockProfile.js';
 import { wrapInAppShell } from '../ui/appShell.js';
+import { getCurrentProfile } from '../utils/session.js';
 import { loadUserPrefs } from '../utils/userPrefs.js';
 
 /**
@@ -48,7 +48,16 @@ function getPrefRowMarkup({ id, setting, label, checked }) {
  */
 function getProfileContentMarkup() {
   const prefs = loadUserPrefs();
-  const profile = mockProfile;
+  const profile = getCurrentProfile();
+
+  if (!profile) {
+    return `
+      <section class="shell-placeholder" aria-label="פרופיל">
+        <h2>אין משתמש מחובר</h2>
+        <p>יש להתחבר מחדש.</p>
+      </section>
+    `;
+  }
 
   return `
     <section class="profile-page" aria-label="פרופיל">

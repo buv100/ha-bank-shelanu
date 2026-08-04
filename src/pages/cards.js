@@ -2,10 +2,10 @@
  * דף כרטיסים — בחירת כרטיס אחד לתצוגה + פרטים + הצגה מלאה.
  */
 
-import { mockCards } from '../data/mockCards.js';
 import { wrapInAppShell } from '../ui/appShell.js';
 import { getBankCardMarkup } from '../ui/bankCard.js';
 import { getCardRevealModalsMarkup } from '../ui/cardReveal.js';
+import { getCurrentCards } from '../utils/session.js';
 
 /**
  * מחזיר תווית עברית לסוג הכרטיס.
@@ -37,11 +37,13 @@ function getDetailRowMarkup(label, value) {
  * @returns {string}
  */
 function getCardPickerMarkup(selectedId) {
-  if (mockCards.length <= 1) {
+  const cards = getCurrentCards();
+
+  if (cards.length <= 1) {
     return '';
   }
 
-  const options = mockCards
+  const options = cards
     .map((card) => {
       const selected = card.id === selectedId;
       return `
@@ -121,7 +123,9 @@ function getSingleCardBlockMarkup(card, isSelected) {
  * @returns {string}
  */
 function getCardsContentMarkup() {
-  if (mockCards.length === 0) {
+  const cards = getCurrentCards();
+
+  if (cards.length === 0) {
     return `
       <section class="shell-placeholder" aria-label="כרטיסים">
         <h2>אין כרטיסים</h2>
@@ -130,12 +134,12 @@ function getCardsContentMarkup() {
     `;
   }
 
-  const selectedId = mockCards[0].id;
+  const selectedId = cards[0].id;
 
   return `
     <section class="cards-page" aria-label="כרטיסים">
       ${getCardPickerMarkup(selectedId)}
-      ${mockCards.map((card) => getSingleCardBlockMarkup(card, card.id === selectedId)).join('')}
+      ${cards.map((card) => getSingleCardBlockMarkup(card, card.id === selectedId)).join('')}
       ${getCardRevealModalsMarkup()}
     </section>
   `;

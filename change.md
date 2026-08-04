@@ -217,3 +217,14 @@
 - **למה:** שיהיה ברור איך להריץ ולשתף את הפרויקט
 - **בקוד:** תיעוד בשורש הריפו
 - **באתר:** אין שינוי ויזואלי — מסמך ב־GitHub
+
+---
+
+## 4/8/26
+
+### משתמשים מרובים בדמו (בלי אדמין)
+- **מה השתנה:** 3 משתמשי דמו עם נתונים נפרדים; בחירה במסך התחברות; session מקומי; דפים וצ׳אט לפי המשתמש המחובר; הגנת ניווט לדפים מוגנים
+- **קבצים:** src/data/mockUsers.js, src/utils/session.js, src/pages/login.js, src/pages/account.js, src/pages/cards.js, src/pages/profile.js, src/pages/loan.js, src/accountMain.js, src/cardsMain.js, src/profileMain.js, src/loanMain.js, src/ui/navigation.js, src/ui/chatWidget.js, src/ui/cardReveal.js, src/ui/loanFloat.js, src/data/chatMock.js, src/services/chatActions.js, src/data/mockAccount.js, src/data/mockProfile.js, src/data/mockCards.js, src/styles/main.css, README.md, specs.md, change.md
+- **למה:** לאפשר תרגול עם כמה פרסונות דמה בלי שרת ובלי אדמין
+- **בקוד:** `loginAs` / `logout` / `getCurrent*` ב־sessionStorage; `requireAuth` בדפי האפליקציה; מקור האמת ב־`mockUsers`
+- **באתר:** במסך כניסה — כרטיסי «היכנס כ־…»; אחרי בחירה — עו״ש/כרטיסים/פרופיל/צ׳אט של אותו משתמש; בלי session — הפניה להתחברות

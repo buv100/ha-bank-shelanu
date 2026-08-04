@@ -3,6 +3,8 @@
  * משתמשים ב־BASE_URL כדי שיעבוד גם ב־GitHub Pages (תת־תיקייה).
  */
 
+import { logout } from '../utils/session.js';
+
 /** בסיס הנתיב מה־Vite (במקומי "/" וב־Pages למשל "/ha-bank-shelanu/") */
 const BASE = import.meta.env.BASE_URL;
 
@@ -47,8 +49,9 @@ export function goToAccountPage() {
 }
 
 /**
- * מעביר את המשתמש לדף ההתחברות.
+ * מעביר את המשתמש לדף ההתחברות ומנתק מהסשן.
  */
 export function goToLoginPage() {
+  logout();
   window.location.assign(LOGIN_PAGE);
 }

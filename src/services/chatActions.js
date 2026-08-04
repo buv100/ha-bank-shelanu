@@ -3,7 +3,6 @@
  * ניווט, הצגת כרטיס, והגדרות.
  */
 
-import { mockCards } from '../data/mockCards.js';
 import {
   ACCOUNT_PAGE,
   CARDS_PAGE,
@@ -20,6 +19,7 @@ import {
   applyUserPrefs,
   setUserPref,
 } from '../utils/userPrefs.js';
+import { getCurrentCards } from '../utils/session.js';
 
 /**
  * מעדכן מתגי הגדרות/פרופיל אחרי שינוי מהצ׳אט.
@@ -91,21 +91,23 @@ function syncThemeToggleUi() {
  * @returns {string | undefined}
  */
 function resolveCardId(hint) {
+  const cards = getCurrentCards();
+
   if (!hint) {
-    return mockCards[0]?.id;
+    return cards[0]?.id;
   }
 
   const lower = hint.toLowerCase();
 
-  if (/אשראי|credit|card-2|4583/.test(lower)) {
-    return mockCards.find((c) => c.type === 'credit')?.id || mockCards[0]?.id;
+  if (/אשראי|credit/.test(lower)) {
+    return cards.find((c) => c.type === 'credit')?.id || cards[0]?.id;
   }
 
-  if (/חיוב|debit|card-1|4582/.test(lower)) {
-    return mockCards.find((c) => c.type === 'debit')?.id || mockCards[0]?.id;
+  if (/חיוב|debit/.test(lower)) {
+    return cards.find((c) => c.type === 'debit')?.id || cards[0]?.id;
   }
 
-  return mockCards[0]?.id;
+  return cards[0]?.id;
 }
 
 /**

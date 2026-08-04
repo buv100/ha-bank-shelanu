@@ -3,8 +3,10 @@
  * משמשות כשאין Worker/API או כשיש שגיאה.
  */
 
-import { mockAccount } from './mockAccount.js';
-import { mockCards } from './mockCards.js';
+import {
+  getCurrentAccount,
+  getCurrentCards,
+} from '../utils/session.js';
 import { formatCurrency } from '../utils/format.js';
 
 /**
@@ -76,6 +78,8 @@ export function detectChatIntent(text) {
 export function getMockChatReply(userText, options) {
   const intent = detectChatIntent(userText);
   const allowSensitive = Boolean(options.allowSensitive);
+  const account = getCurrentAccount();
+  const cards = getCurrentCards();
 
   if (intent === 'help') {
     return {
@@ -164,7 +168,7 @@ export function getMockChatReply(userText, options) {
     }
 
     return {
-      reply: `יתרה בדמו: ${formatCurrency(mockAccount.balance)}.`,
+      reply: `יתרה בדמו: ${formatCurrency(account?.balance || 0)}.`,
     };
   }
 
@@ -187,18 +191,18 @@ export function getMockChatReply(userText, options) {
     }
 
     if (!allowSensitive) {
-      const masked = mockCards.map((c) => `${c.productName}: ${c.numberMasked}`).join(' · ');
+      const masked = cards.map((c) => `${c.productName}: ${c.numberMasked}`).join(' · ');
       return {
-        reply: `כרטיסים (ממוסך): ${masked}`,
+        reply: masked ? `כרטיסים (ממוסך): ${masked}` : 'אין כרטיסים למשתמש זה.',
         action: wantsNavigate ? 'navigate_cards' : undefined,
       };
     }
 
-    const full = mockCards
+    const full = cards
       .map((c) => `${c.productName}: ${c.fullNumber}, ${c.expiry}, CVV ${c.cvv}`)
       .join(' · ');
     return {
-      reply: full,
+      reply: full || 'אין כרטיסים למשתמש זה.',
       action: wantsNavigate ? 'navigate_cards' : undefined,
     };
   }

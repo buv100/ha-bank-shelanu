@@ -3,7 +3,6 @@
  * היסטוריה נמחקת בסגירה (X). בלי מפתח API משתמשים בתשובות דמה.
  */
 
-import { mockProfile } from '../data/mockProfile.js';
 import { PRIVACY_PAGE } from './navigation.js';
 import { runChatAction } from '../services/chatActions.js';
 import { sendChatMessage } from '../services/chatApi.js';
@@ -13,6 +12,7 @@ import {
   hasAiChatConsent,
   setAiChatConsent,
 } from '../utils/chatPrefs.js';
+import { getCurrentProfile } from '../utils/session.js';
 
 /** האם אושרו פרטים רגישים בשיחה הנוכחית (מתאפס בסגירה) */
 let allowSensitive = false;
@@ -26,7 +26,8 @@ let history = [];
  * @returns {string}
  */
 function getBotName() {
-  return `הבנקאי של ${mockProfile.fullName}`;
+  const profile = getCurrentProfile();
+  return profile ? `הבנקאי של ${profile.fullName}` : 'הבנקאי';
 }
 
 /**
@@ -176,7 +177,7 @@ function startFreshConversation() {
     sensitive.hidden = true;
   }
 
-  const firstName = mockProfile.fullName.split(' ')[0];
+  const firstName = getCurrentProfile()?.fullName?.split(' ')[0] || 'שם';
   appendMessage('assistant', `שלום ${firstName}, אשמח לעזור`);
 }
 

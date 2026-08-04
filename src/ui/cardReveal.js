@@ -4,7 +4,7 @@
  * תומך בכמה כרטיסים — בוחרים לפי data-card-id.
  */
 
-import { mockCards } from '../data/mockCards.js';
+import { getCurrentCards } from '../utils/session.js';
 
 /** כמה שניות להציג את הפרטים המלאים לפני סגירה אוטומטית */
 const REVEAL_SECONDS = 60;
@@ -21,7 +21,7 @@ let selectedCardId = null;
  * @returns {object | undefined}
  */
 function findCardById(cardId) {
-  return mockCards.find((card) => card.id === cardId);
+  return getCurrentCards().find((card) => card.id === cardId);
 }
 
 /**
@@ -280,7 +280,7 @@ function toggleCardFlip() {
  * @returns {boolean}
  */
 export function openCardRevealForChat(cardId) {
-  selectedCardId = cardId || mockCards[0]?.id || null;
+  selectedCardId = cardId || getCurrentCards()[0]?.id || null;
 
   if (!selectedCardId || !document.getElementById('card-reveal-modal')) {
     return false;

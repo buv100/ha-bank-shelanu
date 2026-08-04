@@ -11,12 +11,17 @@ import { getLoanMarkup, bindLoanForm } from './pages/loan.js';
 import { mountChatWidget } from './ui/chatWidget.js';
 import { bindSettingsMenu } from './ui/settingsMenu.js';
 import { bindThemeToggle } from './ui/themeToggle.js';
+import { requireAuth } from './utils/session.js';
 import { initTheme } from './utils/theme.js';
 
 /**
  * מאתחל את דף ההלוואה והטופס.
  */
 function initLoanPage() {
+  if (!requireAuth()) {
+    return;
+  }
+
   initTheme();
   const app = document.getElementById('app');
 

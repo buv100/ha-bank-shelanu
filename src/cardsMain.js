@@ -13,12 +13,17 @@ import { bindCardReveal, consumeRevealQueryParam } from './ui/cardReveal.js';
 import { mountChatWidget } from './ui/chatWidget.js';
 import { bindSettingsMenu } from './ui/settingsMenu.js';
 import { bindThemeToggle } from './ui/themeToggle.js';
+import { requireAuth } from './utils/session.js';
 import { initTheme } from './utils/theme.js';
 
 /**
  * מאתחל את דף הכרטיסים (בחירה + תצוגה + הצגה מלאה).
  */
 function initCardsPage() {
+  if (!requireAuth()) {
+    return;
+  }
+
   initTheme();
   const app = document.getElementById('app');
 

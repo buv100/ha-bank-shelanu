@@ -3,9 +3,9 @@
  * לא חלק מהתפריט; נפתח ל־loan.html דרך "לפרטים".
  */
 
-import { mockAccount } from '../data/mockAccount.js';
 import { formatCurrency } from '../utils/format.js';
 import { getMaxLoanAmount } from '../utils/loan.js';
+import { getCurrentAccount } from '../utils/session.js';
 import { LOAN_PAGE } from './navigation.js';
 
 /**
@@ -13,7 +13,8 @@ import { LOAN_PAGE } from './navigation.js';
  * @returns {string}
  */
 export function getLoanFloatMarkup() {
-  const maxLoanText = formatCurrency(getMaxLoanAmount(mockAccount.balance));
+  const account = getCurrentAccount();
+  const maxLoanText = formatCurrency(getMaxLoanAmount(account?.balance || 0));
 
   return `
     <aside class="loan-float" aria-label="פרסומת להלוואה">
