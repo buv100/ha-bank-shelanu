@@ -22,8 +22,16 @@ wrangler secret put GROQ_API_KEY
 wrangler deploy
 ```
 
-ואז ב־`.env`:
+ואז ב־`.env` (לפיתוח מקומי):
 ```
 VITE_CHAT_API_URL=https://ha-bank-chat.YOUR_SUBDOMAIN.workers.dev
 VITE_INVEST_CHAT_API_URL=https://ha-bank-chat.YOUR_SUBDOMAIN.workers.dev/invest-chat
 ```
+
+### כדי שגם הפריסה החיה (GitHub Pages) תשתמש בצ׳אט האמיתי
+`.env` מקומי לא משפיע על הבנייה ב־GitHub Actions. אחרי `wrangler deploy` תנו לקלוד את כתובת ה־Worker (או הריצו בעצמכם):
+```bash
+gh secret set VITE_CHAT_API_URL --repo buv100/ha-bank-shelanu --body "https://ha-bank-chat.YOUR_SUBDOMAIN.workers.dev"
+gh secret set VITE_INVEST_CHAT_API_URL --repo buv100/ha-bank-shelanu --body "https://ha-bank-chat.YOUR_SUBDOMAIN.workers.dev/invest-chat"
+```
+ה־push הבא (או הרצה ידנית של ה־workflow) יבנה עם הכתובות האלה, וכל מי שפותח את הקישור מוואטסאפ יקבל צ׳אט AI אמיתי.
