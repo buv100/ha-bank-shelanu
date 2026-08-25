@@ -376,3 +376,11 @@
 - **למה:** המשתמש ביקש לשלוח קישור לחברים בוואטסאפ ושהם יוכלו "לפתוח כמו אפליקציה" בטלפון — כולל התחברות אמיתית של כל חבר בנפרד דרך Supabase באתר הפרוס (לא רק מקומית)
 - **בקוד:** אין שינוי לוגיקת אפליקציה — רק manifest/meta/secrets בשלב הבנייה; ה־anon key של Supabase מיועד לחשיפה בצד לקוח (מוגן ב־RLS), נשמר כ־GitHub secret בכל זאת כנוהג סטנדרטי
 - **באתר:** פתיחת https://buv100.github.io/ha-bank-shelanu/ בטלפון ובחירת "הוסף למסך הבית" פותחת את הדמו במסך מלא עם אייקון משלו; הרשמה/כניסה בפריסה החיה עובדת מול אותו Supabase כמו מקומית
+
+### צ׳אט AI אמיתי בפריסה החיה — Worker פרוס + מודל Groq מתוקן
+- **מה השתנה:** ה־Cloudflare Worker (`ha-bank-chat`) נפרס בפועל עם `GROQ_API_KEY`; התגלה ש־`llama-3.3-70b-versatile` (המודל שהיה בקוד) כבר לא זמין ב־Groq — הוחלף במודל reasoning זמין (`openai/gpt-oss-120b`) עם `reasoning_effort: "low"` כדי שלא "יחשוב" על חשבון תקציב התשובה הקצרה שהוגדר לצ'אט
+- **קבצים:** shared/groqPrompts.js (`DEFAULT_GROQ_MODEL`), server/groqChat.js, worker/src/index.js (`reasoning_effort: 'low'` בבקשה ל־Groq)
+- **למה:** ספקי מודלים מחליפים/מוציאים משימוש מודלים עם הזמן; ללא התיקון כל קריאה ל־Worker נכשלה (`model_not_found`), ועם מודל reasoning ברירת מחדל התשובות נחתכות כי החשיבה הפנימית אוכלת את תקציב הטוקנים
+- **בקוד:** אותה לוגיקה ב־2 הסביבות דרך shared/groqPrompts.js — שינוי מודל אחד מתעדכן בשניהם
+- **באתר:** צ'אט "הבנקאי" וצ'אט ההשקעות בפריסה החיה (https://buv100.github.io/ha-bank-shelanu/) עונים עכשיו עם AI אמיתי, לא רק תשובות דמו מקומיות — נבדק end-to-end מול ה־Worker הפרוס
+- **מחוץ לגיט (תשתית, לא קוד):** `GROQ_API_KEY` הוגדר כ־Worker secret ב־Cloudflare; `VITE_CHAT_API_URL`/`VITE_INVEST_CHAT_API_URL` הוגדרו כ־GitHub Actions secrets מצביעים ל־https://ha-bank-chat.cohennave15.workers.dev

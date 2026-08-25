@@ -8,7 +8,7 @@
 export const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 /** מודל ברירת מחדל אם לא הוגדר GROQ_MODEL. */
-export const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
+export const DEFAULT_GROQ_MODEL = 'openai/gpt-oss-120b';
 
 /**
  * זיהוי בקשות "תן לי רשימה/היסטוריה מלאה" — מאפשר maxTokens גדול יותר.

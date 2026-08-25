@@ -128,6 +128,7 @@ async function callGroq(args) {
       messages: args.messages,
       temperature: args.invest ? 0.35 : 0.3,
       max_tokens: args.maxTokens,
+      reasoning_effort: 'low',
       stream: false,
     }),
   });

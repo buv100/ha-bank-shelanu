@@ -107,6 +107,7 @@ export async function askGroq(input) {
       messages,
       temperature: 0.35,
       max_tokens: maxTokens,
+      reasoning_effort: 'low',
       stream: false,
     }),
   });
