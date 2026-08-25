@@ -2,4 +2,4 @@ name = "ha-bank-chat"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
 
-# סוד: GEMINI_API_KEY (מוגדר ב־wrangler secret put)
+# סוד: GROQ_API_KEY (מוגדר ב־wrangler secret put)

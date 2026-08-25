@@ -1,9 +1,63 @@
 /**
  * שכבת API לצ׳אט —
- * קוראת ל־Worker אם מוגדר, אחרת נופלת לתשובות דמה.
+ * קוראת ל־Groq דרך /api/chat (או Worker), אחרת נופלת לתשובות דמה.
+ * פעולות בנקאיות (כרטיס/ניווט) ממשיכות מהזיהוי המקומי.
  */
 
 import { getMockChatReply } from '../data/chatMock.js';
+import {
+  buildChatAccountFacts,
+  formatAccountFactsForPrompt,
+} from '../utils/chatAccountFacts.js';
+
+/**
+ * ממזג תשובת API עם פעולות מקומיות לדמו הבנקאי.
+ * @param {{ reply?: string }} apiData
+ * @param {{ message: string, allowSensitive: boolean }} payload
+ * @returns {{
+ *   reply: string,
+ *   action?: string,
+ *   needsSensitiveConsent?: boolean,
+ *   cardChoices?: Array<{ id: string, label: string, lastFour: string }>,
+ *   cardId?: string,
+ *   pendingCardReveal?: boolean,
+ *   source: 'api'
+ * }}
+ */
+function mergeApiWithLocalActions(apiData, payload) {
+  const local = getMockChatReply(payload.message, {
+    allowSensitive: payload.allowSensitive,
+  });
+  const apiReply = String(apiData.reply || '').trim();
+
+  // זרימות רגישות/כרטיס/מספרים מהחשבון — מקומי בלבד (לא ממציאים)
+  if (
+    local.preferLocal ||
+    local.needsSensitiveConsent ||
+    local.cardChoices ||
+    local.action === 'choose_card' ||
+    local.action === 'show_card_details'
+  ) {
+    return { ...local, source: 'api' };
+  }
+
+  // תשובת Groq קודמת — שיחה פתוחה
+  if (apiReply) {
+    return {
+      reply: apiReply,
+      action: local.action,
+      cardId: local.cardId,
+      source: 'api',
+    };
+  }
+
+  return {
+    reply: local.reply || 'לא הצלחתי לענות כרגע.',
+    action: local.action,
+    cardId: local.cardId,
+    source: 'api',
+  };
+}
 
 /**
  * שולח הודעה לבוט ומחזיר תשובה + פעולה אופציונלית.
@@ -12,47 +66,71 @@ import { getMockChatReply } from '../data/chatMock.js';
  *   allowSensitive: boolean,
  *   history: Array<{ role: 'user' | 'assistant', content: string }>
  * }} payload
- * @returns {Promise<{ reply: string, action?: string, needsSensitiveConsent?: boolean, source: 'api' | 'mock' }>}
+ * @returns {Promise<{
+ *   reply: string,
+ *   action?: string,
+ *   needsSensitiveConsent?: boolean,
+ *   cardChoices?: Array<{ id: string, label: string, lastFour: string }>,
+ *   cardId?: string,
+ *   source: 'api' | 'mock'
+ * }>}
  */
 export async function sendChatMessage(payload) {
-  const apiUrl = import.meta.env.VITE_CHAT_API_URL;
+  const apiUrl = import.meta.env.VITE_CHAT_API_URL || '/api/chat';
+  const accountFacts = payload.allowSensitive ? buildChatAccountFacts() : null;
+  const accountFactsText = accountFacts
+    ? formatAccountFactsForPrompt(accountFacts)
+    : null;
 
-  if (apiUrl) {
-    try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: payload.message,
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: payload.message,
+        allowSensitive: payload.allowSensitive,
+        history: payload.history,
+        accountFacts,
+        accountFactsText,
+      }),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const detail = String(data.detail || data.error || '');
+
+      if (
+        response.status === 401 ||
+        response.status === 403 ||
+        /invalid.?api.?key|permission|rate.?limit|quota/i.test(detail)
+      ) {
+        const local = getMockChatReply(payload.message, {
           allowSensitive: payload.allowSensitive,
-          history: payload.history,
-        }),
-      });
+        });
 
-      if (!response.ok) {
-        throw new Error(`chat api ${response.status}`);
+        return {
+          ...local,
+          reply:
+            `${local.reply}\n\n(הערה: העוזר החכם לא זמין כרגע — בדקו את מפתח Groq ב־.env.)`,
+          source: 'mock',
+        };
       }
 
-      const data = await response.json();
-
-      return {
-        reply: String(data.reply || ''),
-        action: data.action ? String(data.action) : undefined,
-        needsSensitiveConsent: Boolean(data.needsSensitiveConsent),
-        source: 'api',
-      };
-    } catch {
-      // נופלים לדמה בשקט — הדמו תמיד נשאר שמיש
+      throw new Error(`chat api ${response.status}: ${detail.slice(0, 200)}`);
     }
+
+    return mergeApiWithLocalActions(data, payload);
+  } catch (error) {
+    console.warn('[chatApi] fallback to mock:', error);
   }
 
   const mock = getMockChatReply(payload.message, {
     allowSensitive: payload.allowSensitive,
   });
 
-  // מדמים השהייה קלה כמו תשובת רשת
   await new Promise((resolve) => {
-    window.setTimeout(resolve, 450 + Math.random() * 400);
+    window.setTimeout(resolve, 350 + Math.random() * 300);
   });
 
   return { ...mock, source: 'mock' };

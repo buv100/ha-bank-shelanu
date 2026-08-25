@@ -19,7 +19,7 @@ export function getLoanFloatMarkup() {
   return `
     <aside class="loan-float" aria-label="פרסומת להלוואה">
       <p class="loan-float__eyebrow">הלוואה</p>
-      <p class="loan-float__headline">עד ${maxLoanText}</p>
+      <p id="loan-float-amount" class="loan-float__headline">עד ${maxLoanText}</p>
       <ul class="loan-float__list">
         <li>תשלומים נוחים</li>
         <li>ריבית נמוכה</li>

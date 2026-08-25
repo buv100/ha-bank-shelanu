@@ -406,9 +406,9 @@
   bottom: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.25rem;
-  padding: 0.55rem 0.75rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.2rem;
+  padding: 0.55rem 0.55rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
   background: color-mix(in srgb, var(--color-surface) 96%, transparent);
   border-top: 1px solid var(--color-border);
   box-shadow: 0 -10px 30px rgba(15, 47, 44, 0.06);
@@ -419,11 +419,11 @@
   display: grid;
   justify-items: center;
   gap: 0.2rem;
-  padding: 0.45rem 0.35rem;
+  padding: 0.45rem 0.2rem;
   border-radius: 12px;
   color: var(--color-muted);
   text-decoration: none;
-  font-size: 0.78rem;
+  font-size: 0.62rem;
   font-weight: 500;
   transition: background-color 0.15s ease, color 0.15s ease;
 }

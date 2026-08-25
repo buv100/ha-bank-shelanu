@@ -1,0 +1,131 @@
+/**
+ * עיצוב דף הנחיתה (index.html) — hero + כרטיסי יתרונות.
+ */
+
+.landing-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 3rem;
+}
+
+.landing-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0 1.5rem;
+}
+
+.landing-topbar__cta {
+  white-space: nowrap;
+}
+
+.landing-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.25rem;
+  padding: 3rem 1rem 3.5rem;
+}
+
+.landing-hero__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 4.5vw, 2.75rem);
+  letter-spacing: -0.02em;
+  max-width: 18ch;
+}
+
+.landing-hero__subtitle {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--color-muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.landing-hero__actions {
+  margin-top: 0.5rem;
+}
+
+.landing-hero__cta {
+  padding: 0.85rem 2.25rem;
+  font-size: 1rem;
+}
+
+.landing-features {
+  padding: 1.5rem 0;
+}
+
+.landing-features__heading {
+  margin: 0 0 1.5rem;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.landing-features__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.landing-feature {
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.landing-feature:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 22px 44px rgba(15, 47, 44, 0.12);
+}
+
+.landing-feature__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 0.85rem;
+  border-radius: 12px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-dark);
+}
+
+.landing-feature__title {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.landing-feature__desc {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.landing-page .site-footer {
+  margin-top: 2.5rem;
+}
+
+@media (max-width: 560px) {
+  .landing-topbar {
+    flex-wrap: wrap;
+  }
+
+  .landing-hero {
+    padding: 2rem 0.5rem 2.5rem;
+  }
+}

@@ -18,8 +18,8 @@ import { initTheme } from './utils/theme.js';
 /**
  * מאתחל את דף הפרופיל (פרטים, העדפות ויציאה).
  */
-function initProfilePage() {
-  if (!requireAuth()) {
+async function initProfilePage() {
+  if (!(await requireAuth())) {
     return;
   }
 

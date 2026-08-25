@@ -17,8 +17,8 @@ import { initTheme } from './utils/theme.js';
 /**
  * מאתחל את דף ההלוואה והטופס.
  */
-function initLoanPage() {
-  if (!requireAuth()) {
+async function initLoanPage() {
+  if (!(await requireAuth())) {
     return;
   }
 

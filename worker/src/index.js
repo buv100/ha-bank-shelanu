@@ -1,29 +1,29 @@
 /**
- * Cloudflare Worker — Proxy בטוח ל־Gemini.
- * המפתח נשאר בשרת בלבד (GEMINI_API_KEY).
+ * Cloudflare Worker — Proxy בטוח ל־Groq.
+ * המפתח נשאר בשרת בלבד (GROQ_API_KEY).
  *
  * פריסה (בקצרה):
  * 1. npm i -g wrangler
  * 2. cd worker && wrangler login
- * 3. wrangler secret put GEMINI_API_KEY
+ * 3. wrangler secret put GROQ_API_KEY
  * 4. wrangler deploy
- * 5. בפרויקט הראשי: VITE_CHAT_API_URL=https://YOUR_WORKER.workers.dev
+ * 5. בפרויקט הראשי:
+ *    VITE_CHAT_API_URL=https://YOUR_WORKER.workers.dev
+ *    VITE_INVEST_CHAT_API_URL=https://YOUR_WORKER.workers.dev/invest-chat
  */
 
-const SYSTEM_PROMPT = `You are a demo bank assistant ("הבנקאי") for a learning website called "הבנק שלנו".
-Rules:
-- Hebrew or English according to the user.
-- This is NOT a real bank. Never give financial advice, investment advice, or recommendations.
-- Only answer demo banking questions and perform allowed actions.
-- Allowed actions (JSON "action"): navigate_account, navigate_cards, navigate_profile, navigate_loan, reveal_card, hide_balance, show_balance, hide_loan, show_loan, notifications_on, notifications_off, theme_dark, theme_light, open_settings.
-- reveal_card / balance / full card numbers: if allowSensitive is false, set needsSensitiveConsent=true and do not invent sensitive numbers; do not set action yet.
-- ALWAYS reply short and focused: 1–2 short sentences max. No fluff.
-- Prefer one clear next step over long explanations.
-Respond ONLY with JSON: {"reply":"...","action":null|"reveal_card"|...,"needsSensitiveConsent":false}`;
+import {
+  BANK_SYSTEM_PROMPT,
+  buildGroqMessages,
+  DEFAULT_GROQ_MODEL,
+  GROQ_URL,
+  INVEST_SYSTEM_PROMPT,
+  WANTS_LIST_PATTERN,
+} from '../../shared/groqPrompts.js';
 
 /**
  * @param {Request} request
- * @param {{ GEMINI_API_KEY: string }} env
+ * @param {{ GROQ_API_KEY: string, GROQ_MODEL?: string }} env
  */
 export default {
   async fetch(request, env) {
@@ -35,8 +35,8 @@ export default {
       return json({ error: 'method not allowed' }, 405, request);
     }
 
-    if (!env.GEMINI_API_KEY) {
-      return json({ error: 'missing GEMINI_API_KEY' }, 500, request);
+    if (!env.GROQ_API_KEY) {
+      return json({ error: 'missing GROQ_API_KEY' }, 500, request);
     }
 
     let body;
@@ -47,75 +47,113 @@ export default {
       return json({ error: 'invalid json' }, 400, request);
     }
 
+    const url = new URL(request.url);
+    const isInvest =
+      url.pathname.includes('invest') ||
+      Boolean(String(body.investFactsText || '').trim());
+
     const message = String(body.message || '').slice(0, 500);
-    const allowSensitive = Boolean(body.allowSensitive);
     const history = Array.isArray(body.history) ? body.history.slice(-12) : [];
 
     if (!message) {
       return json({ error: 'empty message' }, 400, request);
     }
 
-    const contents = [
-      ...history.map((item) => ({
-        role: item.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: String(item.content || '') }],
-      })),
-      {
-        role: 'user',
-        parts: [
-          {
-            text: `allowSensitive=${allowSensitive}\nUser message: ${message}`,
-          },
-        ],
-      },
-    ];
+    const model = env.GROQ_MODEL || DEFAULT_GROQ_MODEL;
 
-    const geminiUrl =
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent' +
-      `?key=${env.GEMINI_API_KEY}`;
+    if (isInvest) {
+      const investFactsText = String(body.investFactsText || '').trim().slice(0, 14000);
+      const factsBlock =
+        investFactsText || 'אין עובדות תיק — אל תמציא מספרים.';
+      const modeNote =
+        'המשתמש באזור המסחר — ענה כיועץ השקעות לפי צילום התיק/השוק בלבד. הזכר שזה דמו.';
 
-    const geminiRes = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents,
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens: 180,
-          responseMimeType: 'application/json',
-        },
-      }),
+      const messages = buildGroqMessages({
+        systemPrompt: INVEST_SYSTEM_PROMPT,
+        history,
+        modeNote,
+        factsBlock,
+        message,
+      });
+
+      return callGroq({ env, model, messages, maxTokens: 420, request, invest: true });
+    }
+
+    const allowSensitive = Boolean(body.allowSensitive);
+    const accountFactsText = String(body.accountFactsText || '').trim().slice(0, 14000);
+    const modeNote = allowSensitive
+      ? 'המשתמש במצב רגיש — מותר לענות על החשבון לפי צילום העובדות בלבד.'
+      : 'המשתמש במצב רגיל (בלי לחשוף יתרה/פרטי כרטיס מלאים).';
+
+    const factsBlock =
+      accountFactsText ||
+      (allowSensitive
+        ? 'אין צילום חשבון בבקשה — אל תמציא מספרים.'
+        : 'אין עובדות חשבון בבקשה — אל תמציא מספרים.');
+
+    const wantsList = WANTS_LIST_PATTERN.test(message);
+    const maxTokens = allowSensitive && wantsList ? 700 : allowSensitive ? 350 : 180;
+
+    const messages = buildGroqMessages({
+      systemPrompt: BANK_SYSTEM_PROMPT,
+      history,
+      modeNote,
+      factsBlock,
+      message,
     });
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text();
-      return json({ error: 'gemini failed', detail: errText.slice(0, 300) }, 502, request);
-    }
-
-    const geminiData = await geminiRes.json();
-    const raw =
-      geminiData?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || '{}';
-
-    let parsed;
-
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      parsed = { reply: raw, action: null, needsSensitiveConsent: false };
-    }
-
-    return json(
-      {
-        reply: String(parsed.reply || ''),
-        action: parsed.action || undefined,
-        needsSensitiveConsent: Boolean(parsed.needsSensitiveConsent),
-      },
-      200,
-      request,
-    );
+    return callGroq({ env, model, messages, maxTokens, request, invest: false });
   },
 };
+
+/**
+ * @param {{
+ *   env: { GROQ_API_KEY: string },
+ *   model: string,
+ *   messages: Array<{ role: string, content: string }>,
+ *   maxTokens: number,
+ *   request: Request,
+ *   invest: boolean
+ * }} args
+ */
+async function callGroq(args) {
+  const groqRes = await fetch(GROQ_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${args.env.GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: args.model,
+      messages: args.messages,
+      temperature: args.invest ? 0.35 : 0.3,
+      max_tokens: args.maxTokens,
+      stream: false,
+    }),
+  });
+
+  if (!groqRes.ok) {
+    const errText = await groqRes.text();
+    return json({ error: 'groq failed', detail: errText.slice(0, 300) }, 502, args.request);
+  }
+
+  const groqData = await groqRes.json();
+  const reply = String(groqData?.choices?.[0]?.message?.content || '').trim();
+
+  if (args.invest) {
+    return json({ reply }, 200, args.request);
+  }
+
+  return json(
+    {
+      reply,
+      action: null,
+      needsSensitiveConsent: false,
+    },
+    200,
+    args.request,
+  );
+}
 
 /**
  * @param {Request} request

@@ -5,7 +5,14 @@
 
 import { getLogoMarkup } from './brand.js';
 import { getDemoBannerMarkup } from './demoBanner.js';
-import { ACCOUNT_PAGE, CARDS_PAGE, PROFILE_PAGE } from './navigation.js';
+import {
+  ACCOUNT_PAGE,
+  CARDS_PAGE,
+  OVERVIEW_PAGE,
+  PROFILE_PAGE,
+  SAVINGS_PAGE,
+  TRANSFERS_PAGE,
+} from './navigation.js';
 import { getSettingsMenuMarkup } from './settingsMenu.js';
 import { getSiteFooterMarkup } from './siteFooter.js';
 import { getSkipLinkMarkup } from './skipLink.js';
@@ -32,6 +39,15 @@ function getNavItemMarkup(item) {
  * אייקונים פשוטים ב־SVG (בלי תמונות חיצוניות) לתפריט.
  */
 const NAV_ICONS = {
+  overview: `
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M4 19V5"/>
+      <path d="M4 19h16"/>
+      <path d="M8 15v-4"/>
+      <path d="M12 15V8"/>
+      <path d="M16 15v-6"/>
+    </svg>
+  `,
   account: `
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
       <rect x="3" y="5" width="18" height="14" rx="2"/>
@@ -51,12 +67,28 @@ const NAV_ICONS = {
       <path d="M5 19c1.5-3 4-4.5 7-4.5s5.5 1.5 7 4.5"/>
     </svg>
   `,
+  transfers: `
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M7 16l-4-4 4-4"/>
+      <path d="M3 12h14"/>
+      <path d="M17 8l4 4-4 4"/>
+      <path d="M21 12H7"/>
+    </svg>
+  `,
+  savings: `
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M12 3v18"/>
+      <path d="M8 7h8"/>
+      <path d="M6 12h12"/>
+      <path d="M9 17h6"/>
+    </svg>
+  `,
 };
 
 /**
  * עוטף תוכן דף במעטפת: דילוג + באנר דמו + כותרת + תוכן + פוטר + תפריט.
  * @param {{
- *   activeNav: 'account' | 'cards' | 'profile' | null,
+ *   activeNav: 'overview' | 'account' | 'transfers' | 'savings' | 'cards' | 'profile' | null,
  *   title: string,
  *   content: string
  * }} options
@@ -69,10 +101,28 @@ export function wrapInAppShell(options) {
 
   const navItems = [
     {
+      href: OVERVIEW_PAGE,
+      label: 'ריכוז',
+      icon: NAV_ICONS.overview,
+      isActive: activeNav === 'overview',
+    },
+    {
       href: ACCOUNT_PAGE,
       label: 'עו״ש',
       icon: NAV_ICONS.account,
       isActive: activeNav === 'account',
+    },
+    {
+      href: TRANSFERS_PAGE,
+      label: 'העברות',
+      icon: NAV_ICONS.transfers,
+      isActive: activeNav === 'transfers',
+    },
+    {
+      href: SAVINGS_PAGE,
+      label: 'חסכונות',
+      icon: NAV_ICONS.savings,
+      isActive: activeNav === 'savings',
     },
     {
       href: CARDS_PAGE,

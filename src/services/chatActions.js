@@ -6,8 +6,12 @@
 import {
   ACCOUNT_PAGE,
   CARDS_PAGE,
+  INVESTMENTS_PAGE,
   LOAN_PAGE,
+  OVERVIEW_PAGE,
   PROFILE_PAGE,
+  SAVINGS_PAGE,
+  TRANSFERS_PAGE,
 } from '../ui/navigation.js';
 import { selectCard } from '../ui/cardPicker.js';
 import { openCardRevealForChat } from '../ui/cardReveal.js';
@@ -113,7 +117,7 @@ function resolveCardId(hint) {
 /**
  * מריץ פעולה שהוחזרה מהבוט.
  * @param {string | undefined} action
- * @param {{ message?: string }} [meta]
+ * @param {{ message?: string, cardId?: string }} [meta]
  */
 export function runChatAction(action, meta = {}) {
   if (!action) {
@@ -125,6 +129,10 @@ export function runChatAction(action, meta = {}) {
     navigate_cards: CARDS_PAGE,
     navigate_profile: PROFILE_PAGE,
     navigate_loan: LOAN_PAGE,
+    navigate_overview: OVERVIEW_PAGE,
+    navigate_investments: INVESTMENTS_PAGE,
+    navigate_savings: SAVINGS_PAGE,
+    navigate_transfers: TRANSFERS_PAGE,
   };
 
   if (routes[action]) {
@@ -134,8 +142,8 @@ export function runChatAction(action, meta = {}) {
     return;
   }
 
-  if (action === 'reveal_card') {
-    const cardId = resolveCardId(meta.message);
+  if (action === 'reveal_card' || action === 'show_card_details') {
+    const cardId = meta.cardId || resolveCardId(meta.message);
 
     if (document.getElementById('card-reveal-modal')) {
       if (cardId) {

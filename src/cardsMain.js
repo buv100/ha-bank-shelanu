@@ -7,7 +7,7 @@ import './styles/shell.css';
 import './styles/cards.css';
 import './styles/legal.css';
 import './styles/chat.css';
-import { getCardsMarkup } from './pages/cards.js';
+import { getCardsMarkup, bindCardBlockActions, bindCardsLiveUpdates } from './pages/cards.js';
 import { bindCardPicker, selectCard } from './ui/cardPicker.js';
 import { bindCardReveal, consumeRevealQueryParam } from './ui/cardReveal.js';
 import { mountChatWidget } from './ui/chatWidget.js';
@@ -19,8 +19,8 @@ import { initTheme } from './utils/theme.js';
 /**
  * מאתחל את דף הכרטיסים (בחירה + תצוגה + הצגה מלאה).
  */
-function initCardsPage() {
-  if (!requireAuth()) {
+async function initCardsPage() {
+  if (!(await requireAuth())) {
     return;
   }
 
@@ -36,6 +36,8 @@ function initCardsPage() {
   bindSettingsMenu();
   bindCardPicker();
   bindCardReveal();
+  bindCardBlockActions();
+  bindCardsLiveUpdates();
   mountChatWidget();
 
   const params = new URLSearchParams(window.location.search);

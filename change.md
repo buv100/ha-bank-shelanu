@@ -228,3 +228,151 @@
 - **למה:** לאפשר תרגול עם כמה פרסונות דמה בלי שרת ובלי אדמין
 - **בקוד:** `loginAs` / `logout` / `getCurrent*` ב־sessionStorage; `requireAuth` בדפי האפליקציה; מקור האמת ב־`mockUsers`
 - **באתר:** במסך כניסה — כרטיסי «היכנס כ־…»; אחרי בחירה — עו״ש/כרטיסים/פרופיל/צ׳אט של אותו משתמש; בלי session — הפניה להתחברות
+
+### הרחבת משתמשי דמו ונתונים
+- **מה השתנה:** נוספו 3 משתמשים (סה״כ 6); לכל אחד יתרה/תנועות/2–3 כרטיסים; גלילה ברשימת ההתחברות
+- **קבצים:** src/data/mockUsers.js, src/styles/main.css, README.md, change.md
+- **למה:** דמו עשיר יותר להשוואה בין פרסונות
+- **בקוד:** עדכון `mockUsers` בלבד — המסכים/session כבר דינמיים
+- **באתר:** במסך כניסה — 6 אפשרויות; בדף כרטיסים — עד 3 כרטיסים לפי המשתמש
+
+### עיצוב מיוחד לכרטיס פלטינום
+- **מה השתנה:** וריאנט `platinum` עם מראה מתכתי כהה, ברק כסף, תג PLATINUM ואנימציות עדינות
+- **קבצים:** src/ui/bankCard.js, src/ui/cardReveal.js, src/styles/cards.css, src/data/mockUsers.js, change.md
+- **למה:** להבדיל את כרטיס הפרימיום משאר הכרטיסים
+- **בקוד:** `getBankCardVariantClass` + מחלקת `.bank-card--platinum`
+- **באתר:** אצל שירה בן דוד — כרטיס הפלטינום נראה יוקרתי יותר (גם בהצגה מלאה)
+
+### סימולציית קניות אוטומטית (חיוב/אשראי)
+- **מה השתנה:** קניות רנדומליות אוטומטיות לכל משתמש; חיוב יורד מהעו״ש; אשראי מעלה חוב כרטיס; שמירה ב־localStorage מוכנה ל־DB
+- **קבצים:** src/utils/accountStore.js, src/utils/cardStore.js, src/services/purchaseSimulator.js, src/services/autoActivity.js, src/utils/session.js, src/pages/account.js, src/pages/cards.js, src/accountMain.js, src/cardsMain.js, src/ui/loanFloat.js, src/styles/main.css, src/styles/cards.css, README.md, change.md
+- **למה:** לדמות «תשלום בכרטיס» בלי מסוף אמיתי, עם הפרדה נכונה בין חיוב לאשראי
+- **בקוד:** `simulateCardPurchase` + `startAutoActivity` (טיימר + catch-up); אירוע `ha-bank:data-changed` לרענון UI
+- **באתר:** בעו״ש — תנועות חדשות מכרטיס חיוב; בכרטיסי אשראי — מסגרת/חוב/תנועות שמתעדכנים לבד
+
+### דף ריכוז יתרות
+- **מה השתנה:** מסך חדש שמציג כמה נשאר באמת: יתרת עו״ש פחות חוב אשראי, עם מקום להשקעות בעתיד
+- **קבצים:** overview.html, src/overviewMain.js, src/pages/overview.js, src/utils/balances.js, src/styles/overview.css, src/ui/appShell.js, src/ui/navigation.js, vite.config.js, README.md, change.md
+- **למה:** לתת מבט אחד על המצב הכלכלי של המשתמש בדמו
+- **בקוד:** `getBalancesSummary()` — נטו = עו״ש − סך חוב אשראי (+ השקעות כשיופעלו)
+- **באתר:** בתפריט התחתון — «ריכוז»; המספרים מתעדכנים כשיש קניות אוטומטיות
+
+### עיצובי כרטיס לפי מוצר + תיקון פלטינום
+- **מה השתנה:** לכל מוצר עיצוב נפרד (חיוב/אשראי/זהב/נסיעות/דיגיטלי/פלטינום); תוקף ושם בעל הכרטיס לא יוצאים מגבולות הכרטיס
+- **קבצים:** src/ui/bankCard.js, src/ui/cardReveal.js, src/styles/cards.css, src/data/mockUsers.js, change.md
+- **למה:** להבדיל בין סוגי כרטיסים ולתקן גלישת טקסט בפלטינום
+- **בקוד:** `resolveCardVariant` + מחלקות `.bank-card--gold/travel/digital/...`; פריסה צפופה יותר עם ellipsis
+- **באתר:** בדף כרטיסים — כל מוצר נראה אחרת; בפלטינום הפרטים התחתונים נשארים בתוך הכרטיס
+
+---
+
+## 9/8/26
+
+### עדכון אפיון לפי מצב הדמו
+- **מה השתנה:** `specs.md` הותאם להתקדמות בלי לשכתב את שלב 1 ההיסטורי — צ׳אט Groq (מצבים רגיל/רגיש), משכורת ב־10 לחודש, ריכוז/הלוואה/כרטיסים/פרופיל כקיימים, ארכיטקטורת `server/` + מפתח ב־`.env`
+- **קבצים:** specs.md, change.md
+- **למה:** שמירת מקור האמת מסונכרן עם מה שבונים בפועל
+- **בקוד:** אין שינוי התנהגות — תיעוד בלבד
+- **באתר:** אין שינוי ויזואלי
+
+---
+
+## 11/8/26
+
+### סכמת Postgres (Supabase) בלי חיבור ל־UI
+- **מה השתנה:** נוספה תיקיית `db/` עם טבלאות, RLS, טריגר הרשמה, ו־seed לקטלוגים (סניפים, שוק, תבניות סימולטור)
+- **קבצים:** db/schema.sql, db/seed.sql, db/README.md, specs.md, change.md
+- **למה:** להכין בסיס נתונים מאובטח לפני התחברות אמיתית
+- **בקוד:** אין שינוי ב־`src/` — הדמו ממשיך על mock + localStorage
+- **באתר:** אין שינוי ויזואלי
+
+### התחברות אמיתית מול Supabase
+- **מה השתנה:** מסך כניסה/הרשמה עם שם משתמש וסיסמה; סשן מ־Auth; טעינת פרופיל ועו״ש מה־DB
+- **קבצים:** src/services/supabaseClient.js, src/services/authApi.js, src/services/supabaseHydrate.js, src/pages/login.js, src/utils/session.js, src/*Main.js, .env.example, db/README.md, change.md
+- **למה:** לעבור מבחירת פרסונת דמו לאימות אמיתי
+- **בקוד:** `email_for_username` → `signInWithPassword`; `requireAuth` אסינכרוני
+- **באתר:** בדף ההתחברות — טופס כניסה או הרשמה (לא ביחד), עם כפתור מעבר
+
+### מסך כניסה/הרשמה נפרד
+- **מה השתנה:** במקום שני טאבים — מסך אחד בכל פעם + קישור מעבר
+- **קבצים:** src/pages/login.js, src/styles/main.css, change.md
+- **למה:** פחות עומס ויזואלי
+- **בקוד:** `showLoginMode` מחליף בין הטפסים
+- **באתר:** «אין לך חשבון? הרשמה» / «כבר יש חשבון? כניסה»
+
+### הרשמה בלי אימות מייל
+- **מה השתנה:** אחרי הרשמה נכנסים ישר; טריגר מאשר את האימייל ב־DB; הודעות בלי «בדקו את האימייל»
+- **קבצים:** src/services/authApi.js, src/pages/login.js, src/utils/session.js, db/schema.sql, db/auto_confirm.sql, db/reset.sql, db/README.md, specs.md, change.md
+- **למה:** דמו בלי תלות במייל של Supabase
+- **בקוד:** אחרי `signUp` מנסים `signInWithPassword`; `auto_confirm_auth_user` על `auth.users`
+- **באתר:** הרשמה עם שם מלא / שם משתמש / אימייל / סיסמה ואז כניסה לחשבון
+- **ב־Supabase (חובה כדי שלא יישלח מייל):** Authentication → Sign In / Providers → Email → כבו Confirm email
+
+## 13/8/26
+
+### פתיחת חשבון דינמית + סימולציה למשתמשי Auth
+- **מה השתנה:** אחרי התחברות ראשונה — טופס נתונים ראשוניים; סניף/יתרה/מספרי כרטיס נוצרים אוטומטית; סימולציה ומשכורת עובדות למשתמשי Supabase
+- **קבצים:** setup.html, src/setupMain.js, src/pages/setup.js, src/styles/setup.css, src/services/bootstrapAccount.js, src/services/onboardingApi.js, src/services/recurringExpenses.js, src/services/autoActivity.js, src/services/salaryDeposit.js, src/services/purchaseSimulator.js, src/services/supabaseHydrate.js, src/utils/session.js, src/pages/login.js, db/onboarding.sql, db/schema.sql, db/reset.sql, db/README.md, specs.md, change.md, vite.config.js
+- **למה:** כל משתמש (NACHOM / SHLOMO / DANIEL וכו׳) ממלא את שלו, בלי נתונים קשיחים בקוד
+- **בקוד:** `buildOnboardingSnapshot` משלים חסרים; `runRandomPurchase` קורא מ־cardStore ולא מ־mockUsers
+- **באתר:** דף «פתיחת חשבון» אחרי כניסה, עד שמסיימים
+- **ב־Supabase:** להריץ `db/onboarding.sql` (פעם אחת)
+
+### השלמת מספרי כרטיס בהצגה מלאה
+- **מה השתנה:** בפתיחת חשבון ובטעינה מה־DB נוצרים אוטומטית מספר מלא + CVV לדמו (לא נשמרים ב־DB)
+- **קבצים:** src/services/bootstrapAccount.js, src/services/supabaseHydrate.js, src/utils/session.js, change.md
+- **למה:** מסך «הצגת פרטי כרטיס» צריך fullNumber/CVV גם למשתמשים חדשים
+- **בקוד:** `ensureCardDisplayFields` / `buildDemoFullNumber` / `buildDemoCvv`
+- **באתר:** אחרי פתיחת חשבון — בהצגה מלאה מופיעים מספר ותוקף ו־CVV
+
+### ביטול אימות מייל ו־SMS
+- **מה השתנה:** כניסה והרשמה רק עם שם משתמש + סיסמה; הוסר מסך SMS; הוסר טלפון מהרשמה; חזר auto-confirm במייל
+- **קבצים:** src/services/authApi.js, src/pages/login.js, src/services/onboardingApi.js, db/schema.sql, db/auto_confirm.sql, db/README.md, specs.md, README.md, change.md
+- **למה:** דמו פשוט — נרשמים ונכנסים בלי מייל או SMS
+- **בקוד:** `signInWithUsername` / `signUpWithUsername` ישירים; אחרי `signUp` ניסיון `signInWithPassword` אם אין session
+- **באתר:** הרשמה = שם מלא / שם משתמש / אימייל / סיסמה → כניסה ישר
+- **ב־Supabase:** Confirm email = OFF; Phone לא נדרש; להריץ `auto_confirm.sql` אם הטריגר לא קיים
+
+## 25/8/26
+
+### קיבוע דמו ההשקעות/חסכונות/פתיחת חשבון שכבר היה בעבודה
+- **מה השתנה:** commit לכל מה שהצטבר בעבודה ולא נכנס לגיט עד כה — מסכי השקעות (מסחר, חיפוש, פירוט), חסכונות, ריכוז יתרות, פתיחת חשבון, וכל שכבות ה־store/service הנלוות (Supabase, סימולטור קניות/משכורת, הוצאות קבועות)
+- **קבצים:** overview.html, savings.html, setup.html, investments.html, investments-search.html, investment-detail.html, וכל src/pages|src/*Main.js|src/services|src/utils המתאימים (untracked קודם), db/ (סכמה + seed + README), server/ (פרוקסי Groq מקומי)
+- **למה:** הקוד כבר רץ ועובד בפועל מזמן, רק לא היה ב־git — כדי שההיסטוריה תשקף את מצב הפרויקט האמיתי
+- **בקוד:** אין שינוי התנהגות — רק תיעוד/הוספה ל־git של מה שכבר קיים
+- **באתר:** אין שינוי ויזואלי מעבר למה שכבר היה זמין מקומית
+
+### איחוד קוד Groq בין השרת המקומי ל־Worker
+- **מה השתנה:** חילוץ הפרומפטים (`BANK_SYSTEM_PROMPT`/`INVEST_SYSTEM_PROMPT`), כתובת ה־API, המודל ברירת המחדל ובניית מערך ה־messages לקובץ משותף אחד; תוקן גם הבדל לא מכוון ב־regex של "wantsList" בין הסביבות
+- **קבצים:** shared/groqPrompts.js (חדש), server/groqChat.js, worker/src/index.js
+- **למה:** אותה לוגיקה בדיוק הייתה משוכפלת מילה-במילה בשני קבצים — סיכון לדריפט (וכבר היה דריפט אחד בפועל) בכל שינוי לפרומפט
+- **בקוד:** `buildGroqMessages()` ו־`WANTS_LIST_PATTERN` משותפים; כל צד שומר רק את מה שספציפי לו (Node middleware מול Fetch handler של Worker)
+- **באתר:** אין שינוי התנהגות מורגש — אותן תשובות צ׳אט
+
+### דף נחיתה שיווקי לפני התחברות
+- **מה השתנה:** `index.html` הפך לדף נחיתה (הירו + כרטיסי יתרונות); ההתחברות עברה לדף נפרד `login.html`
+- **קבצים:** index.html, login.html (חדש), src/pages/landing.js, src/landingMain.js, src/loginMain.js (היה src/main.js), src/styles/landing.css, src/ui/navigation.js (`LANDING_PAGE` חדש, `LOGIN_PAGE`→login.html), vite.config.js, src/utils/session.js
+- **למה:** ב־specs.md זה היה פריט ראשון ברשימת "עדיפויות בהמשך" — נקודת כניסה שיווקית לפני שמבקשים שם משתמש/סיסמה
+- **בקוד:** `getLandingMarkup()` עם `getBrandMarkup`/`getDemoBannerMarkup`/`getSiteFooterMarkup` קיימים; שני entry points נפרדים ב־`vite.config.js` (`landing`, `login`)
+- **באתר:** גולש חדש שנכנס לכתובת הבסיס רואה דף נחיתה עם כפתור «כניסה לחשבון»; הכפתור מוביל ל־`/login.html`
+
+### העברות אמיתיות + חיפוש/סינון/פירוט תנועה בעו״ש
+- **מה השתנה:** דף ההעברות (שהיה קיים כ־UI בלבד) מחובר עכשיו ל־accountStore/savingsStore בפועל — סוגי העברה רוב (מוטב/ביט/מהירה/בינלאומית/חשבונות/בין חשבונות שלי/הפקדה לחיסכון) באמת מחייבים את העו״ש או מעבירים לחיסכון, עם בדיקת יתרה והודעת שגיאה; הוראת קבע נשארת דמו בלבד. בדף העו״ש נוסף פס חיפוש טקסט + סינון קטגוריה + טוגל הכנסה/הוצאה, וחלון פירוט תנועה בלחיצה על שורה
+- **קבצים:** src/pages/transfers.js, src/pages/account.js, src/ui/transactionItem.js, src/accountMain.js, src/styles/account.css (חדש)
+- **למה:** שתי יכולות מתוכננות מרשימת "עדיפויות בהמשך" ב־specs.md — העברת כסף אמיתית (עדיפות 2) וסינון/פירוט תנועה (עדיפות 3)
+- **בקוד:** `performTransfer()` ב־transfers.js מנתב לפי `option.id`; `applyTransactionFilters()` פונקציה טהורה ב־account.js; `notifyDataChanged`/`DATA_CHANGED_EVENT` הקיימים משמשים לרענון לייב בין דפים
+- **באתר:** בדף העברות — ביצוע אמיתי משנה יתרה (חוץ מהוראת קבע); בדף עו״ש — שדה חיפוש מעל רשימת התנועות, בורר קטגוריה, כפתורי הכל/הכנסות/הוצאות, ולחיצה על תנועה פותחת חלון עם כל הפרטים
+
+### צ׳אט חכם באמת — עונה על כל שאלת חשבון, לא רק ניסוחים תואמים
+- **מה השתנה:** הוסרה החסימה שגרמה לבוט להתעלם מתשובת ה־AI (Groq) ולהחזיר תמיד תבנית קבועה בעברית עבור יתרה/תנועות/חסכונות/השקעות/ריכוז/משכורת/תזרים; עכשיו ה־AI עונה בפועל מתוך צילום החשבון המלא שכבר נשלח אליו, וההיסטוריה המקומית משמשת רק כגיבוי כשה־API לא זמין. גם חוזק הפרומפט המשותף כדי לעודד חישוב/סינון/השוואה מהעובדות ולא רק דקלום
+- **קבצים:** src/data/chatMock.js, shared/groqPrompts.js
+- **למה:** המשתמש ביקש בוט שעונה על כל שאלה קשורה לחשבון בלי קשר לניסוח — הקוד הקודם זיהה כוונה ב־regex ואם התאים, כפה תשובת תבנית קבועה גם כש־Groq כבר ענה נכון וגמיש יותר מתוך הנתונים
+- **בקוד:** הוסר `preferLocal: true` מכל ענפי ה"הצלחה" (allowSensitive===true) של savings_summary / investments_summary / overview_summary / salary_history / transactions_list / cashflow / balance ב־`getMockChatReply`; נשאר רק על transfers_help שלא תלוי בעובדות רגישות; `BANK_SYSTEM_PROMPT` קיבל הנחיה מפורשת לחשב/לסנן/להשוות מתוך העובדות ולהתאים תשובה לכל ניסוח
+- **באתר:** בצ׳אט (מצב רגיש, עם Groq מוגדר) — שאלות בכל ניסוח על יתרה/תנועות/חסכונות/השקעות/ריכוז/משכורת/תזרים מקבלות תשובה מהמודל לפי הנתונים האמיתיים, במקום משפט קבוע מראש
+
+### הפיכה לאפליקציה ניתנת להתקנה בטלפון (PWA) + חיבור פריסה חיה ל־Supabase
+- **מה השתנה:** נוסף manifest.webmanifest + אייקונים (192/512/maskable/apple-touch-icon, נגזרים מ־logo.svg) ותגי meta להתקנה למסך הבית בכל 16 דפי ה־HTML; workflow הפריסה (GitHub Pages) מעביר עכשיו VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY / VITE_CHAT_API_URL / VITE_INVEST_CHAT_API_URL כ־secrets לשלב הבנייה
+- **קבצים:** public/manifest.webmanifest (חדש), public/icon-192.png, public/icon-512.png, public/icon-maskable-512.png, public/apple-touch-icon.png (חדשים), כל 16 קבצי *.html (תגי `<link rel="manifest">`/`<meta theme-color>` וכו'), .github/workflows/deploy-pages.yml
+- **למה:** המשתמש ביקש לשלוח קישור לחברים בוואטסאפ ושהם יוכלו "לפתוח כמו אפליקציה" בטלפון — כולל התחברות אמיתית של כל חבר בנפרד דרך Supabase באתר הפרוס (לא רק מקומית)
+- **בקוד:** אין שינוי לוגיקת אפליקציה — רק manifest/meta/secrets בשלב הבנייה; ה־anon key של Supabase מיועד לחשיפה בצד לקוח (מוגן ב־RLS), נשמר כ־GitHub secret בכל זאת כנוהג סטנדרטי
+- **באתר:** פתיחת https://buv100.github.io/ha-bank-shelanu/ בטלפון ובחירת "הוסף למסך הבית" פותחת את הדמו במסך מלא עם אייקון משלו; הרשמה/כניסה בפריסה החיה עובדת מול אותו Supabase כמו מקומית

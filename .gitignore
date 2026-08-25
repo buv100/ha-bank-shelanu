@@ -10,6 +10,7 @@ Thumbs.db
 *.log
 .vite/
 .cursor/
+.claude/
 .env
 .env.*
 !.env.example

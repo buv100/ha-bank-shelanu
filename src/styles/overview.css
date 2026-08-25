@@ -1,0 +1,305 @@
+/**
+ * עיצוב דף ריכוז יתרות —
+ * נטו ברור למעלה, פירוט עו״ש / אשראי / השקעות.
+ */
+
+.overview-page {
+  display: grid;
+  gap: 1.1rem;
+  align-content: start;
+}
+
+.overview-net {
+  padding: clamp(1.35rem, 3.5vw, 1.85rem);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background:
+    linear-gradient(145deg, rgba(13, 148, 136, 0.16), color-mix(in srgb, var(--color-surface) 88%, transparent) 60%),
+    var(--color-surface);
+  box-shadow: var(--shadow-soft);
+  animation: fade-rise 0.4s ease both;
+}
+
+.overview-net--negative {
+  background:
+    linear-gradient(145deg, rgba(185, 28, 28, 0.12), color-mix(in srgb, var(--color-surface) 88%, transparent) 60%),
+    var(--color-surface);
+}
+
+.overview-net__caption {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.overview-net__value {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6.5vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--color-accent-dark);
+}
+
+.overview-net--negative .overview-net__value {
+  color: var(--color-expense);
+}
+
+.overview-net__formula {
+  margin: 0.55rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+}
+
+.overview-net__soon {
+  opacity: 0.85;
+}
+
+.overview-panel {
+  padding: 1rem 1.05rem 1.05rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.overview-panel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.overview-panel__title {
+  margin: 0 0 0.65rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.overview-panel__head .overview-panel__title {
+  margin: 0;
+}
+
+.overview-panel__link {
+  color: var(--color-accent-dark);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.overview-panel__link:hover {
+  text-decoration: underline;
+}
+
+.overview-panel__note {
+  margin: 0.85rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.overview-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.overview-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.overview-row:first-child {
+  border-top: 0;
+  padding-top: 0.15rem;
+}
+
+.overview-row__label {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.overview-row__value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.overview-row--plus .overview-row__value {
+  color: var(--color-income);
+}
+
+.overview-row--minus .overview-row__value {
+  color: var(--color-expense);
+}
+
+.overview-row--soon .overview-row__value {
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.overview-row--invest {
+  align-items: flex-start;
+}
+
+.overview-row__label--invest {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.overview-row__value--stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  text-align: left;
+}
+
+.overview-change {
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.overview-change--up {
+  color: #15803d;
+}
+
+.overview-change--down {
+  color: #b91c1c;
+}
+
+.overview-change--flat {
+  color: var(--color-muted);
+}
+
+:root[data-theme='dark'] .overview-change--up {
+  color: #4ade80;
+}
+
+:root[data-theme='dark'] .overview-change--down {
+  color: #f87171;
+}
+
+.overview-invest__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-accent-dark);
+  font-weight: 600;
+  font-size: inherit;
+  line-height: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: none;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.overview-invest__btn:hover {
+  color: var(--color-accent);
+  background: transparent;
+  transform: none;
+  box-shadow: none;
+  text-decoration: underline;
+}
+
+.overview-invest__btn:active {
+  transform: none;
+  opacity: 0.85;
+}
+
+.overview-invest__btn-arrow {
+  font-size: 0.95em;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+
+.overview-invest__btn:hover .overview-invest__btn-arrow {
+  transform: translateX(-2px);
+}
+
+:root[data-theme='dark'] .overview-invest__btn {
+  color: var(--color-accent-dark);
+}
+
+.overview-card-debt-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.overview-card-debt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.overview-card-debt:first-child {
+  border-top: 0;
+  padding-top: 0.2rem;
+}
+
+.overview-card-debt__name {
+  margin: 0;
+  font-weight: 700;
+}
+
+.overview-card-debt__meta {
+  margin: 0.15rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.overview-card-debt__amount {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-expense);
+  white-space: nowrap;
+}
+
+.overview-empty {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.overview-footer-links {
+  margin: 0.15rem 0 0;
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.overview-footer-links a {
+  color: var(--color-accent-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.overview-footer-links a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 420px) {
+  .overview-card-debt {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}

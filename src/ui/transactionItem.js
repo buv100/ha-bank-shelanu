@@ -14,6 +14,8 @@ export function createTransactionItem(transaction) {
   const item = document.createElement('li');
   item.className = 'tx-item';
   item.dataset.id = transaction.id;
+  item.setAttribute('role', 'button');
+  item.setAttribute('tabindex', '0');
 
   const isIncome = transaction.amount > 0;
   const amountClass = isIncome ? 'tx-amount--income' : 'tx-amount--expense';
