@@ -6,6 +6,7 @@ import { defineConfig, loadEnv } from 'vite';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { createGroqChatMiddleware, createInvestChatMiddleware } from './server/groqChat.js';
+import { DEFAULT_GROQ_MODEL } from './shared/groqPrompts.js';
 
 // ב־ES modules אין __dirname מובנה — בונים אותו מכאן
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -34,14 +35,14 @@ export default defineConfig(({ mode }) => {
             '/api/chat',
             createGroqChatMiddleware({
               apiKey: env.GROQ_API_KEY,
-              model: env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+              model: env.GROQ_MODEL || DEFAULT_GROQ_MODEL,
             }),
           );
           server.middlewares.use(
             '/api/invest-chat',
             createInvestChatMiddleware({
               apiKey: env.GROQ_API_KEY,
-              model: env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+              model: env.GROQ_MODEL || DEFAULT_GROQ_MODEL,
             }),
           );
         },

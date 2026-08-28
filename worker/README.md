@@ -5,7 +5,7 @@
 2. שימו ב־`.env` בשורש:
 ```
 GROQ_API_KEY=your_key_here
-GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_MODEL=openai/gpt-oss-120b
 VITE_CHAT_API_URL=/api/chat
 ```
 3. הריצו `npm run dev`
