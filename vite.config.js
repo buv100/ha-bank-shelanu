@@ -6,6 +6,7 @@ import { defineConfig, loadEnv } from 'vite';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { createGroqChatMiddleware, createInvestChatMiddleware } from './server/groqChat.js';
+import { createAdminLoginMiddleware, createAdminCommandMiddleware } from './server/bankRiskAgent.js';
 import { DEFAULT_GROQ_MODEL } from './shared/groqPrompts.js';
 
 // ב־ES modules אין __dirname מובנה — בונים אותו מכאן
@@ -45,6 +46,25 @@ export default defineConfig(({ mode }) => {
               model: env.GROQ_MODEL || DEFAULT_GROQ_MODEL,
             }),
           );
+          // סוכן bank-risk-expert (admin.html) — מקומי בלבד, ראו server/bankRiskAgent.js
+          server.middlewares.use(
+            '/api/admin/login',
+            createAdminLoginMiddleware({
+              supabaseUrl: env.VITE_SUPABASE_URL,
+              supabaseAnonKey: env.VITE_SUPABASE_ANON_KEY,
+              sessionSecret: env.ADMIN_SESSION_SECRET,
+              dbUrl: env.SUPABASE_DB_URL,
+            }),
+          );
+          server.middlewares.use(
+            '/api/admin/command',
+            createAdminCommandMiddleware({
+              sessionSecret: env.ADMIN_SESSION_SECRET,
+              dbUrl: env.SUPABASE_DB_URL,
+              anthropicApiKey: env.ANTHROPIC_API_KEY,
+              googleServiceAccountKeyPath: env.GOOGLE_SERVICE_ACCOUNT_KEY_PATH,
+            }),
+          );
         },
       },
     ],
@@ -65,6 +85,7 @@ export default defineConfig(({ mode }) => {
           profile: resolve(__dirname, 'profile.html'),
           setup: resolve(__dirname, 'setup.html'),
           loan: resolve(__dirname, 'loan.html'),
+          admin: resolve(__dirname, 'admin.html'),
           accessibility: resolve(__dirname, 'accessibility.html'),
           privacy: resolve(__dirname, 'privacy.html'),
           terms: resolve(__dirname, 'terms.html'),
