@@ -55,60 +55,89 @@ function sendJson(res, status, body) {
  * @param {{ supabaseUrl: string, supabaseAnonKey: string, sessionSecret: string, dbUrl: string }} options
  */
 export function createAdminLoginMiddleware(options) {
-  return async (req, res) => {
-    if (req.method === 'OPTIONS') {
-      withCors(res);
-      res.statusCode = 204;
-      res.end();
-      return;
-    }
-
-    if (req.method !== 'POST') {
-      sendJson(res, 405, { error: 'method not allowed' });
-      return;
-    }
-
-    withCors(res);
-
-    if (!options.sessionSecret) {
-      sendJson(res, 500, { error: 'חסר ADMIN_SESSION_SECRET ב-.env' });
-      return;
-    }
-
-    let body;
-    try {
-      body = JSON.parse((await readBody(req)) || '{}');
-    } catch {
-      sendJson(res, 400, { error: 'בקשה לא תקינה' });
-      return;
-    }
-
-    const dbClient = new Client({ connectionString: options.dbUrl });
-
-    try {
-      await dbClient.connect();
-      const result = await tryAdminLogin({
-        username: String(body.username || ''),
-        password: String(body.password || ''),
-        supabaseUrl: options.supabaseUrl,
-        supabaseAnonKey: options.supabaseAnonKey,
-        dbClient,
-      });
-
-      if (!result.ok) {
-        sendJson(res, 401, { error: result.error });
-        return;
-      }
-
-      const token = signAdminToken({ secret: options.sessionSecret, userId: result.userId });
-      sendJson(res, 200, { token });
-    } catch (error) {
+  return (req, res) => {
+    handleAdminLogin(req, res, options).catch((error) => {
       console.error('[admin-login]', error);
-      sendJson(res, 500, { error: 'שגיאת שרת בהתחברות' });
-    } finally {
-      await dbClient.end().catch(() => {});
-    }
+      if (!res.writableEnded) {
+        sendJson(res, 500, { error: 'שגיאת שרת בהתחברות' });
+      }
+    });
   };
+}
+
+/**
+ * @param {import('http').IncomingMessage} req
+ * @param {import('http').ServerResponse} res
+ * @param {{ supabaseUrl: string, supabaseAnonKey: string, sessionSecret: string, dbUrl: string }} options
+ */
+async function handleAdminLogin(req, res, options) {
+  if (req.method === 'OPTIONS') {
+    withCors(res);
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    sendJson(res, 405, { error: 'method not allowed' });
+    return;
+  }
+
+  withCors(res);
+
+  if (!options.sessionSecret) {
+    sendJson(res, 500, { error: 'חסר ADMIN_SESSION_SECRET ב-.env' });
+    return;
+  }
+
+  if (!options.dbUrl) {
+    sendJson(res, 500, { error: 'חסר SUPABASE_DB_URL ב-.env' });
+    return;
+  }
+
+  let body;
+  try {
+    body = JSON.parse((await readBody(req)) || '{}');
+  } catch {
+    sendJson(res, 400, { error: 'בקשה לא תקינה' });
+    return;
+  }
+
+  const dbClient = new Client({ connectionString: options.dbUrl });
+  // pg זורק event 'error' בנפרד מה-promise של connect() — בלי מאזין כאן
+  // Node מתייחס לזה כ-uncaught exception ומפיל את כל תהליך ה-dev server.
+  dbClient.on('error', (err) => console.error('[pg]', err.message));
+
+  try {
+    await dbClient.connect();
+    const result = await tryAdminLogin({
+      username: String(body.username || ''),
+      password: String(body.password || ''),
+      supabaseUrl: options.supabaseUrl,
+      supabaseAnonKey: options.supabaseAnonKey,
+      dbClient,
+    });
+
+    if (!result.ok) {
+      sendJson(res, 401, { error: result.error });
+      return;
+    }
+
+    const token = signAdminToken({ secret: options.sessionSecret, userId: result.userId });
+    sendJson(res, 200, { token });
+  } catch (error) {
+    console.error('[admin-login]', error);
+    const msg = String(error?.message || error || '');
+    if (/ENOTFOUND|ENOENT|getaddrinfo|ECONNREFUSED/i.test(msg)) {
+      sendJson(res, 503, {
+        error: 'אין חיבור למסד הנתונים. בדקו שפרויקט Supabase פעיל ו־SUPABASE_DB_URL ב-.env נכון.',
+      });
+      return;
+    }
+    sendJson(res, 500, { error: 'שגיאת שרת בהתחברות' });
+  } finally {
+    await dbClient.end().catch(() => {});
+  }
 }
 
 /**
@@ -165,6 +194,9 @@ export function createAdminCommandMiddleware(options) {
     }
 
     const dbClient = new Client({ connectionString: options.dbUrl });
+    // pg זורק event 'error' בנפרד מה-promise של connect() — בלי מאזין כאן
+    // Node מתייחס לזה כ-uncaught exception ומפיל את כל תהליך ה-dev server.
+    dbClient.on('error', (err) => console.error('[pg]', err.message));
 
     try {
       await dbClient.connect();
