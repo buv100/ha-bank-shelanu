@@ -62,7 +62,6 @@ export default defineConfig(({ mode }) => {
               sessionSecret: env.ADMIN_SESSION_SECRET,
               dbUrl: env.SUPABASE_DB_URL,
               anthropicApiKey: env.ANTHROPIC_API_KEY,
-              googleServiceAccountKeyPath: env.GOOGLE_SERVICE_ACCOUNT_KEY_PATH,
             }),
           );
         },

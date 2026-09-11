@@ -14,3 +14,9 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# מפתחות service account (Google וכו') — סודות, לא לגיט
+secrets/
+
+# דוחות שהסוכן bank-risk-expert מפיק (Markdown מקומי) — פלט, לא קוד
+reports/

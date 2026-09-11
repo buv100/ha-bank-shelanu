@@ -4,17 +4,60 @@
  * שאילתה להריץ בשביל איזה דוח, איך נראה ציון סיכון וכו'. הכלים כאן הם
  * הפרימיטיבים הגנריים בלבד: להריץ SQL קריאה, לבצע כתיבה מבוקרת (חסימת
  * כרטיס / החלטת הלוואה) עם רשת הביטחון האמורה בסעיף 5 ב-SKILL.md, וליצור
- * מסמך Google Docs.
+ * קובץ דוח מקומי.
  *
  * חיבור ה-DB הוא חיבור Postgres ישיר (לא Supabase JS) — כדי שאפשר יהיה
  * להריץ בדיוק את שאילתות ה-SQL (עם JOIN/CTE) שמופיעות ב-references/report-templates.md,
  * לא רק CRUD טבלאי. החיבור הזה עוקף RLS לגמרי (מתחבר כ-postgres), ולכן
  * צריך SUPABASE_DB_URL ולא לחשוף אותו לעולם לצד לקוח.
+ *
+ * הערה: במקור הדוחות היו אמורים לצאת כ-Google Docs אמיתיים (כך שכתוב
+ * עדיין ב-SKILL.md/report-templates.md), אבל service account "רגיל" (לא
+ * Google Workspace) לא מקבל מכסת אחסון ב-Drive ולא יכול ליצור מסמכים —
+ * מגבלה של Google, לא באג כאן. הוחלט לוותר על Google Docs ולהסתפק בקובץ
+ * Markdown מקומי (ראו createReportFile למטה).
  */
 
+import { writeFile, mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import { z } from 'zod';
 import { tool, createSdkMcpServer } from '@anthropic-ai/claude-agent-sdk';
-import { createGoogleDoc } from './googleDocs.js';
+
+const REPORTS_DIR = join(process.cwd(), 'reports');
+
+/**
+ * ממיר "סעיפים" גנריים (כותרת/פסקאות/טבלה) לטקסט Markdown, ושומר קובץ מקומי.
+ * @param {{ title: string, sections: Array<{ heading?: string, headingLevel?: number, paragraphs?: string[], table?: { headers: string[], rows: string[][] } }> }} input
+ * @returns {Promise<string>} נתיב הקובץ שנשמר
+ */
+export async function saveReportFile({ title, sections }) {
+  const lines = [`# ${title}`, ''];
+
+  for (const section of sections) {
+    if (section.heading) {
+      lines.push(`${'#'.repeat(section.headingLevel || 2)} ${section.heading}`, '');
+    }
+
+    for (const paragraph of section.paragraphs || []) {
+      lines.push(paragraph, '');
+    }
+
+    if (section.table) {
+      lines.push(`| ${section.table.headers.join(' | ')} |`);
+      lines.push(`|${section.table.headers.map(() => '---').join('|')}|`);
+      for (const row of section.table.rows) {
+        lines.push(`| ${row.join(' | ')} |`);
+      }
+      lines.push('');
+    }
+  }
+
+  await mkdir(REPORTS_DIR, { recursive: true });
+  const fileName = `${new Date().toISOString().replace(/[:.]/g, '-')}_${title.replace(/[^\p{L}\p{N}]+/gu, '-').slice(0, 60)}.md`;
+  const filePath = join(REPORTS_DIR, fileName);
+  await writeFile(filePath, lines.join('\n'), 'utf8');
+  return filePath;
+}
 
 // רשת ביטחון (blast radius) — סעיף 5 ב-SKILL.md: מעל 5 ישויות בפעולת כתיבה
 // אחת מפקודה בודדת → עוצרים, לא מבצעים.
@@ -43,10 +86,10 @@ async function recordSafetyStop(db, { action, originalCommand, entityIds }) {
 }
 
 /**
- * בונה את שרת ה-MCP הפנימי עם כל כלי ה-DB / Google Docs שהסוכן יכול להשתמש בהם.
- * @param {{ db: import('pg').Client, googleDocsAuth: import('./googleDocs.js').GoogleDocsAuth | null }} input
+ * בונה את שרת ה-MCP הפנימי עם כל כלי ה-DB / דוחות שהסוכן יכול להשתמש בהם.
+ * @param {{ db: import('pg').Client }} input
  */
-export function createBankTools({ db, googleDocsAuth }) {
+export function createBankTools({ db }) {
   const runSqlQuery = tool(
     'run_sql_query',
     'מריץ שאילתת SQL לקריאה בלבד (SELECT) מול ה-DB של הבנק, ומחזיר את השורות כ-JSON. משמש להפקת דוחות ולחישוב ציוני סיכון — יש להשתמש בשאילתות מ-references/report-templates.md כשרלוונטי.',
@@ -183,9 +226,9 @@ export function createBankTools({ db, googleDocsAuth }) {
     },
   );
 
-  const createDoc = tool(
-    'create_google_doc',
-    'יוצר מסמך Google Docs חדש מכותרת + רשימת סעיפים (כותרות, פסקאות, טבלאות), ומחזיר קישור לצפייה. משמש להפקת כל אחד מ-7 תבניות הדוח.',
+  const createReportFile = tool(
+    'create_report_file',
+    'יוצר קובץ דוח מקומי (Markdown) בתיקיית reports/ מכותרת + רשימת סעיפים (כותרות, פסקאות, טבלאות), ומחזיר את הנתיב. משמש להפקת כל אחד מ-7 תבניות הדוח (לא Google Docs — ראו הערה ב-SKILL.md).',
     {
       title: z.string(),
       sections: z.array(z.object({
@@ -199,19 +242,12 @@ export function createBankTools({ db, googleDocsAuth }) {
       })),
     },
     async ({ title, sections }) => {
-      if (!googleDocsAuth) {
-        return {
-          content: [{ type: 'text', text: 'שגיאה: Google Docs לא מוגדר בשרת (חסר GOOGLE_SERVICE_ACCOUNT_KEY_PATH ב-.env).' }],
-          isError: true,
-        };
-      }
-
       try {
-        const url = await createGoogleDoc(googleDocsAuth, { title, sections });
-        return { content: [{ type: 'text', text: `הדוח נוצר: ${url}` }] };
+        const filePath = await saveReportFile({ title, sections });
+        return { content: [{ type: 'text', text: `הדוח נשמר: ${filePath}` }] };
       } catch (error) {
         return {
-          content: [{ type: 'text', text: `שגיאה ביצירת המסמך: ${error instanceof Error ? error.message : String(error)}` }],
+          content: [{ type: 'text', text: `שגיאה בשמירת הדוח: ${error instanceof Error ? error.message : String(error)}` }],
           isError: true,
         };
       }
@@ -221,6 +257,6 @@ export function createBankTools({ db, googleDocsAuth }) {
   return createSdkMcpServer({
     name: 'bank-risk-tools',
     version: '1.0.0',
-    tools: [runSqlQuery, blockCards, decideLoans, createDoc],
+    tools: [runSqlQuery, blockCards, decideLoans, createReportFile],
   });
 }

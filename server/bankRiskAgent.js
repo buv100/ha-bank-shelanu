@@ -2,7 +2,7 @@
  * מידלוור Vite (רץ רק מקומית, כמו server/groqChat.js) לדף האדמין:
  * /api/admin/login   — התחברות המנהל היחיד (NACHOM)
  * /api/admin/command — פענוח פקודה חופשית דרך Claude Agent SDK עם הסקיל
- *                      bank-risk-expert טעון, וכלי ה-DB/Google Docs מ-bankTools.js
+ *                      bank-risk-expert טעון, וכלי ה-DB/דוחות מ-bankTools.js
  *
  * חשוב: זה בכוונה לא שרת נפרד שרץ כתהליך משלו — הוא חי בתוך תהליך ה-Vite
  * dev server (configureServer ב-vite.config.js), בדיוק כמו הפרוקסי הקיים
@@ -16,7 +16,6 @@ import { Client } from 'pg';
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { signAdminToken, tryAdminLogin, verifyAdminToken } from './adminAuth.js';
 import { createBankTools } from './bankTools.js';
-import { loadGoogleDocsAuth } from './googleDocs.js';
 
 /**
  * @param {import('http').IncomingMessage} req
@@ -145,97 +144,139 @@ async function handleAdminLogin(req, res, options) {
  *   sessionSecret: string,
  *   dbUrl: string,
  *   anthropicApiKey: string,
- *   googleServiceAccountKeyPath?: string,
  * }} options
  */
 export function createAdminCommandMiddleware(options) {
-  return async (req, res) => {
-    if (req.method === 'OPTIONS') {
-      withCors(res);
-      res.statusCode = 204;
-      res.end();
-      return;
-    }
-
-    if (req.method !== 'POST') {
-      sendJson(res, 405, { error: 'method not allowed' });
-      return;
-    }
-
-    withCors(res);
-
-    const authHeader = String(req.headers.authorization || '');
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : '';
-    const userId = options.sessionSecret ? verifyAdminToken({ secret: options.sessionSecret, token }) : null;
-
-    if (!userId) {
-      sendJson(res, 403, { error: 'אין הרשאה — יש להתחבר מחדש כמנהל' });
-      return;
-    }
-
-    if (!options.anthropicApiKey) {
-      sendJson(res, 500, { error: 'חסר ANTHROPIC_API_KEY ב-.env' });
-      return;
-    }
-
-    let body;
-    try {
-      body = JSON.parse((await readBody(req)) || '{}');
-    } catch {
-      sendJson(res, 400, { error: 'בקשה לא תקינה' });
-      return;
-    }
-
-    const command = String(body.command || '').trim();
-
-    if (!command) {
-      sendJson(res, 400, { error: 'חסרה פקודה' });
-      return;
-    }
-
-    const dbClient = new Client({ connectionString: options.dbUrl });
-    // pg זורק event 'error' בנפרד מה-promise של connect() — בלי מאזין כאן
-    // Node מתייחס לזה כ-uncaught exception ומפיל את כל תהליך ה-dev server.
-    dbClient.on('error', (err) => console.error('[pg]', err.message));
-
-    try {
-      await dbClient.connect();
-
-      const googleDocsAuth = options.googleServiceAccountKeyPath
-        ? await loadGoogleDocsAuth(options.googleServiceAccountKeyPath).catch((error) => {
-            console.warn('[admin-command] Google Docs auth failed:', error.message);
-            return null;
-          })
-        : null;
-
-      const bankTools = createBankTools({ db: dbClient, googleDocsAuth });
-
-      let finalText = '';
-
-      for await (const message of query({
-        prompt: command,
-        options: {
-          model: 'claude-sonnet-5',
-          cwd: process.cwd(),
-          settingSources: ['user'],
-          skills: ['bank-risk-expert'],
-          permissionMode: 'bypassPermissions',
-          allowDangerouslySkipPermissions: true,
-          mcpServers: { 'bank-risk-tools': bankTools },
-          env: { ...process.env, ANTHROPIC_API_KEY: options.anthropicApiKey },
-        },
-      })) {
-        if (message.type === 'result') {
-          finalText = message.subtype === 'success' ? message.result : `שגיאה: ${message.subtype}`;
-        }
-      }
-
-      sendJson(res, 200, { reply: finalText || 'הסוכן לא החזיר תשובה.' });
-    } catch (error) {
+  return (req, res) => {
+    handleAdminCommand(req, res, options).catch((error) => {
       console.error('[admin-command]', error);
-      sendJson(res, 502, { error: 'שגיאה בהרצת הסוכן', detail: error instanceof Error ? error.message : String(error) });
-    } finally {
-      await dbClient.end().catch(() => {});
-    }
+      if (!res.writableEnded) {
+        const detail = error instanceof Error ? error.message : String(error);
+        const creditLow = /credit balance is too low/i.test(detail);
+        sendJson(res, creditLow ? 402 : 502, {
+          error: creditLow
+            ? 'אין יתרת קרדיט ב־Anthropic. טענו חשבון ב־console.anthropic.com והמשיכו.'
+            : 'שגיאה בהרצת הסוכן',
+          detail,
+        });
+      }
+    });
   };
+}
+
+/**
+ * @param {import('http').IncomingMessage} req
+ * @param {import('http').ServerResponse} res
+ * @param {{
+ *   sessionSecret: string,
+ *   dbUrl: string,
+ *   anthropicApiKey: string,
+ * }} options
+ */
+async function handleAdminCommand(req, res, options) {
+  if (req.method === 'OPTIONS') {
+    withCors(res);
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
+  if (req.method !== 'POST') {
+    sendJson(res, 405, { error: 'method not allowed' });
+    return;
+  }
+
+  withCors(res);
+
+  const authHeader = String(req.headers.authorization || '');
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : '';
+  const userId = options.sessionSecret ? verifyAdminToken({ secret: options.sessionSecret, token }) : null;
+
+  if (!userId) {
+    sendJson(res, 403, { error: 'אין הרשאה — יש להתחבר מחדש כמנהל' });
+    return;
+  }
+
+  if (!options.anthropicApiKey) {
+    sendJson(res, 500, { error: 'חסר ANTHROPIC_API_KEY ב-.env' });
+    return;
+  }
+
+  if (!options.dbUrl) {
+    sendJson(res, 500, { error: 'חסר SUPABASE_DB_URL ב-.env' });
+    return;
+  }
+
+  let body;
+  try {
+    body = JSON.parse((await readBody(req)) || '{}');
+  } catch {
+    sendJson(res, 400, { error: 'בקשה לא תקינה' });
+    return;
+  }
+
+  const command = String(body.command || '').trim();
+
+  if (!command) {
+    sendJson(res, 400, { error: 'חסרה פקודה' });
+    return;
+  }
+
+  const dbClient = new Client({ connectionString: options.dbUrl });
+  // pg זורק event 'error' בנפרד מה-promise של connect() — בלי מאזין כאן
+  // Node מתייחס לזה כ-uncaught exception ומפיל את כל תהליך ה-dev server.
+  dbClient.on('error', (err) => console.error('[pg]', err.message));
+
+  try {
+    await dbClient.connect();
+
+    const bankTools = createBankTools({ db: dbClient });
+
+    let finalText = '';
+
+    for await (const message of query({
+      prompt: command,
+      options: {
+        model: 'claude-sonnet-5',
+        cwd: process.cwd(),
+        settingSources: ['user'],
+        skills: ['bank-risk-expert'],
+        permissionMode: 'bypassPermissions',
+        allowDangerouslySkipPermissions: true,
+        mcpServers: { 'bank-risk-tools': bankTools },
+        env: { ...process.env, ANTHROPIC_API_KEY: options.anthropicApiKey },
+      },
+    })) {
+      if (message.type === 'result') {
+        finalText = message.subtype === 'success' ? message.result : `שגיאה: ${message.subtype}`;
+      }
+    }
+
+    sendJson(res, 200, { reply: finalText || 'הסוכן לא החזיר תשובה.' });
+  } catch (error) {
+    console.error('[admin-command]', error);
+    const detail = error instanceof Error ? error.message : String(error);
+    const creditLow = /credit balance is too low/i.test(detail);
+    const dbDown = /ENOTFOUND|ENOENT|getaddrinfo|ECONNREFUSED/i.test(detail);
+
+    if (creditLow) {
+      sendJson(res, 402, {
+        error: 'אין יתרת קרדיט ב־Anthropic. טענו חשבון ב־console.anthropic.com והמשיכו.',
+        detail,
+      });
+      return;
+    }
+
+    if (dbDown) {
+      sendJson(res, 503, {
+        error: 'אין חיבור למסד הנתונים. בדקו SUPABASE_DB_URL / שפרויקט Supabase פעיל.',
+        detail,
+      });
+      return;
+    }
+
+    sendJson(res, 502, { error: 'שגיאה בהרצת הסוכן', detail });
+  } finally {
+    await dbClient.end().catch(() => {});
+  }
 }
