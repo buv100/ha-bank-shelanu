@@ -86,6 +86,113 @@ async function recordSafetyStop(db, { action, originalCommand, entityIds }) {
 }
 
 /**
+ * הליבה של run_sql_query — נפרדת מ-tool() כדי שאפשר יהיה לקרוא לה ישירות
+ * (בדיקות, הדגמות) בלי לעבור דרך שכבת ה-MCP.
+ * @param {import('pg').Client} db
+ * @param {string} sql
+ */
+export async function runSqlQueryCore(db, sql) {
+  const trimmed = sql.trim().replace(/;+\s*$/, '');
+
+  if (WRITE_SQL_PATTERN.test(trimmed) || !/^select\b|^with\b/i.test(trimmed)) {
+    throw new Error('הכלי הזה מריץ רק שאילתות SELECT/WITH לקריאה. לכתיבה יש להשתמש ב-blockCardsCore / decideLoansCore.');
+  }
+
+  const { rows } = await db.query(trimmed);
+  return rows;
+}
+
+/**
+ * הליבה של block_cards — כולל אכיפת רשת הביטחון (סעיף 5 ב-SKILL.md).
+ * @param {import('pg').Client} db
+ * @param {{ cardIds: string[], reason: string, triggerIndicator: string, originalCommand: string }} args
+ * @returns {Promise<{ blocked: string[], safetyStopped: boolean }>}
+ */
+export async function blockCardsCore(db, { cardIds, reason, triggerIndicator, originalCommand }) {
+  if (cardIds.length > MAX_ENTITIES_PER_WRITE) {
+    await recordSafetyStop(db, { action: 'block_card', originalCommand, entityIds: cardIds });
+    return { blocked: [], safetyStopped: true };
+  }
+
+  const blocked = [];
+
+  for (const cardId of cardIds) {
+    await db.query('begin');
+    try {
+      const { rowCount } = await db.query(
+        `update public.cards set blocked = true, status = 'blocked' where id = $1`,
+        [cardId],
+      );
+
+      if (rowCount === 0) {
+        await db.query('rollback');
+        continue;
+      }
+
+      await db.query(
+        `insert into public.audit_log (user_id, action, entity_type, entity_id, meta)
+         select user_id, 'auto_block_card', 'card', id,
+                jsonb_build_object('reason', $2::text, 'trigger', $3::text)
+         from public.cards where id = $1`,
+        [cardId, reason, triggerIndicator],
+      );
+      await db.query('commit');
+      blocked.push(cardId);
+    } catch (error) {
+      await db.query('rollback');
+      throw error;
+    }
+  }
+
+  return { blocked, safetyStopped: false };
+}
+
+/**
+ * הליבה של decide_loans — כולל אכיפת רשת הביטחון (סעיף 5 ב-SKILL.md).
+ * @param {import('pg').Client} db
+ * @param {{ loanIds: string[], decision: 'approved' | 'rejected', reason: string, originalCommand: string }} args
+ * @returns {Promise<{ decided: string[], safetyStopped: boolean }>}
+ */
+export async function decideLoansCore(db, { loanIds, decision, reason, originalCommand }) {
+  if (loanIds.length > MAX_ENTITIES_PER_WRITE) {
+    await recordSafetyStop(db, { action: `loan_${decision}`, originalCommand, entityIds: loanIds });
+    return { decided: [], safetyStopped: true };
+  }
+
+  const action = decision === 'approved' ? 'loan_approved' : 'loan_rejected';
+  const decided = [];
+
+  for (const loanId of loanIds) {
+    await db.query('begin');
+    try {
+      const { rowCount } = await db.query(
+        `update public.loan_applications set status = $2 where id = $1`,
+        [loanId, decision],
+      );
+
+      if (rowCount === 0) {
+        await db.query('rollback');
+        continue;
+      }
+
+      await db.query(
+        `insert into public.audit_log (user_id, action, entity_type, entity_id, meta)
+         select user_id, $2, 'loan_application', id, jsonb_build_object('reason', $3::text)
+         from public.loan_applications where id = $1`,
+        [loanId, action, reason],
+      );
+      await db.query('commit');
+      decided.push(loanId);
+    } catch (error) {
+      await db.query('rollback');
+      throw error;
+    }
+  }
+
+  return { decided, safetyStopped: false };
+}
+
+/**
  * בונה את שרת ה-MCP הפנימי עם כל כלי ה-DB / דוחות שהסוכן יכול להשתמש בהם.
  * @param {{ db: import('pg').Client }} input
  */
@@ -95,17 +202,8 @@ export function createBankTools({ db }) {
     'מריץ שאילתת SQL לקריאה בלבד (SELECT) מול ה-DB של הבנק, ומחזיר את השורות כ-JSON. משמש להפקת דוחות ולחישוב ציוני סיכון — יש להשתמש בשאילתות מ-references/report-templates.md כשרלוונטי.',
     { sql: z.string().describe('שאילתת SELECT יחידה') },
     async ({ sql }) => {
-      const trimmed = sql.trim().replace(/;+\s*$/, '');
-
-      if (WRITE_SQL_PATTERN.test(trimmed) || !/^select\b|^with\b/i.test(trimmed)) {
-        return {
-          content: [{ type: 'text', text: 'שגיאה: הכלי הזה מריץ רק שאילתות SELECT/WITH לקריאה. לכתיבה יש להשתמש בכלי block_cards / decide_loans.' }],
-          isError: true,
-        };
-      }
-
       try {
-        const { rows } = await db.query(trimmed);
+        const rows = await runSqlQueryCore(db, sql);
         return { content: [{ type: 'text', text: JSON.stringify(rows, null, 2) }] };
       } catch (error) {
         return {
@@ -126,8 +224,9 @@ export function createBankTools({ db }) {
       originalCommand: z.string().describe('הפקודה החופשית המקורית של המנהל, לצורך תיעוד safety_stop'),
     },
     async ({ cardIds, reason, triggerIndicator, originalCommand }) => {
-      if (cardIds.length > MAX_ENTITIES_PER_WRITE) {
-        await recordSafetyStop(db, { action: 'block_card', originalCommand, entityIds: cardIds });
+      const { blocked, safetyStopped } = await blockCardsCore(db, { cardIds, reason, triggerIndicator, originalCommand });
+
+      if (safetyStopped) {
         return {
           content: [{
             type: 'text',
@@ -135,36 +234,6 @@ export function createBankTools({ db }) {
           }],
           isError: true,
         };
-      }
-
-      const blocked = [];
-
-      for (const cardId of cardIds) {
-        await db.query('begin');
-        try {
-          const { rowCount } = await db.query(
-            `update public.cards set blocked = true, status = 'blocked' where id = $1`,
-            [cardId],
-          );
-
-          if (rowCount === 0) {
-            await db.query('rollback');
-            continue;
-          }
-
-          await db.query(
-            `insert into public.audit_log (user_id, action, entity_type, entity_id, meta)
-             select user_id, 'auto_block_card', 'card', id,
-                    jsonb_build_object('reason', $2::text, 'trigger', $3::text)
-             from public.cards where id = $1`,
-            [cardId, reason, triggerIndicator],
-          );
-          await db.query('commit');
-          blocked.push(cardId);
-        } catch (error) {
-          await db.query('rollback');
-          throw error;
-        }
       }
 
       return { content: [{ type: 'text', text: `נחסמו ${blocked.length} כרטיסים: ${blocked.join(', ')}` }] };
@@ -181,8 +250,9 @@ export function createBankTools({ db }) {
       originalCommand: z.string(),
     },
     async ({ loanIds, decision, reason, originalCommand }) => {
-      if (loanIds.length > MAX_ENTITIES_PER_WRITE) {
-        await recordSafetyStop(db, { action: `loan_${decision}`, originalCommand, entityIds: loanIds });
+      const { decided, safetyStopped } = await decideLoansCore(db, { loanIds, decision, reason, originalCommand });
+
+      if (safetyStopped) {
         return {
           content: [{
             type: 'text',
@@ -190,36 +260,6 @@ export function createBankTools({ db }) {
           }],
           isError: true,
         };
-      }
-
-      const action = decision === 'approved' ? 'loan_approved' : 'loan_rejected';
-      const decided = [];
-
-      for (const loanId of loanIds) {
-        await db.query('begin');
-        try {
-          const { rowCount } = await db.query(
-            `update public.loan_applications set status = $2 where id = $1`,
-            [loanId, decision],
-          );
-
-          if (rowCount === 0) {
-            await db.query('rollback');
-            continue;
-          }
-
-          await db.query(
-            `insert into public.audit_log (user_id, action, entity_type, entity_id, meta)
-             select user_id, $2, 'loan_application', id, jsonb_build_object('reason', $3::text)
-             from public.loan_applications where id = $1`,
-            [loanId, action, reason],
-          );
-          await db.query('commit');
-          decided.push(loanId);
-        } catch (error) {
-          await db.query('rollback');
-          throw error;
-        }
       }
 
       return { content: [{ type: 'text', text: `עודכנו ${decided.length} בקשות הלוואה ל-${decision}: ${decided.join(', ')}` }] };
